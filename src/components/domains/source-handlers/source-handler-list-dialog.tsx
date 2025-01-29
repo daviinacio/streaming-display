@@ -121,7 +121,7 @@ export function SourceHandlerListDialog({
               />
             </div>
           </div>
-          <DialogFooter className="sm:justify-between flex-col">
+          <DialogFooter className="flex-col">
             <div className="grid sm:flex gap-2">
               {/* <Button type="button" variant="outline">
                 Import

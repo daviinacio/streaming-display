@@ -12,9 +12,9 @@ import {
   Input,
   InputTextList,
   ScrollArea,
-  Textarea,
 } from "@/components/ui";
 import { Form, FormField } from "@/components/ui/form";
+import { CodeEditor } from "@/components/widget/code-editor";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
 import { normalizeIdentifier } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -170,7 +170,7 @@ export function SourceHandlerEditDialog({
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
 
       <DialogContent
-        className="sm:max-w-[700px] h-full sm:h-[560px]"
+        className="sm:max-w-[700px] h-full sm:h-[570px]"
         onPointerDownOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
@@ -230,20 +230,7 @@ export function SourceHandlerEditDialog({
                     </FormField>
                   }
                 >
-                  <Textarea
-                    data-1p-ignore
-                    rows={12}
-                    className="resize-none font-mono text-xs whitespace-pre"
-                    onKeyDown={(e) => {
-                      if (e.key === "Tab") {
-                        e.preventDefault();
-                        document.execCommand("insertText", false, "  ");
-                      } else if (e.key === "Enter") {
-                        e.preventDefault();
-                        document.execCommand("insertText", false, "\n");
-                      }
-                    }}
-                  />
+                  <CodeEditor />
                 </FormField>
               </div>
 

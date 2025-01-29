@@ -149,7 +149,9 @@ export function ValueListEdit({
                   onClick={() => onRemove && onRemove(i)}
                   className={cn(
                     "h-7 w-7 pointer-events-auto",
-                    "hover:text-destructive"
+                    "hover:text-destructive",
+                    "peer-focus:text-muted-foreground",
+                    "peer-focus:hover:text-destructive"
                   )}
                   variant="ghost"
                   size="icon"

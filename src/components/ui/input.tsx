@@ -70,30 +70,25 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             size,
             className: cn(
               (icon && (iconPosition === "right" ? "pr-10" : "pl-10")) || "",
+              "peer",
               className
             ),
           })}
           ref={inputRef}
           {...props}
         />
-        {icon && (
-          <div
-            className={cn(
-              "absolute top-[50%] translate-y-[-50%]",
+        {icon &&
+          React.cloneElement(icon as React.ReactElement, {
+            className: cn(
+              `absolute top-[50%] translate-y-[-50%]`,
               "text-muted-foreground [input:focus-visible+&]:text-primary transition-colors",
               "group-[.field-warning]:text-warning",
               "group-[.field-error]:text-destructive",
-              `${iconPosition === "right" ? "right-1.5" : "left-1.5"}`
-            )}
-          >
-            {React.cloneElement(icon as React.ReactElement, {
-              className: cn(
-                "h-8 w-8 p-1.5 pointer-events-none",
-                icon.props.className
-              ),
-            })}
-          </div>
-        )}
+              `${iconPosition === "right" ? "right-1.5" : "left-1.5"}`,
+              "h-8 w-8 p-1.5 pointer-events-none",
+              icon.props.className
+            ),
+          })}
       </div>
     );
   }
