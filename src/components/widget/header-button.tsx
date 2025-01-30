@@ -16,8 +16,8 @@ export function HeaderButton({ className, children, ...props }: ButtonProps) {
       <Slot
         className={cn(
           "w-5 h-5",
-          "group-hover:scale-125 group-active:scale-110",
-          "transition-[transform]"
+          "group-hover:scale-125 group-active:scale-90",
+          "transition-[transform] group-active:duration-100 duration-200"
         )}
       >
         {children}

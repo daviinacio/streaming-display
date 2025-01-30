@@ -27,7 +27,7 @@ export function Providers({ children }: PropsWithChildren) {
             <AlertDialogProvider>
               <ReactQueryProvider>
                 {children}
-                <Toaster position="top-right" />
+                <Toaster position="top-center" />
               </ReactQueryProvider>
             </AlertDialogProvider>
           </ThemeProvider>

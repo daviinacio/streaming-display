@@ -8,15 +8,9 @@ import {
 
 type SearchText = `search-text-${string}`;
 
-export type TempItem = {
-  "last-url": string;
-  "current-store": string;
-};
+export type TempItem = Record<string, any>;
 
-const defaultTempItem: TempItem = {
-  "last-url": "/",
-  "current-store": "",
-};
+const defaultTempItem: TempItem = {};
 
 const storageKey = "temp";
 

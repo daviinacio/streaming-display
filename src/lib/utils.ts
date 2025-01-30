@@ -7,6 +7,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 // Array utilities
 export const distinct =
   <A extends Array<O>, O>(...keys: Array<keyof O>) =>
@@ -197,5 +200,11 @@ export function normalizeIdentifier(identifier?: string) {
       .replace(/[.]{2,}/g, ".")
       // Remove all not alphanumeric characters on start
       .replace(/^[^0-9a-zA-Z]/g, "")
+  );
+}
+
+export function findWildcard(list: string[] | undefined, search: string) {
+  return (list || []).find((it) =>
+    it.split("*").every((its) => search.indexOf(its) >= 0)
   );
 }

@@ -30,11 +30,12 @@ export type SourceHandler = {
   id: string;
   version: string;
   label: string;
+  icon?: string;
   logo?: {
     url: string;
     height?: string;
   };
-  urlMatch: string[] | ((url: string) => boolean);
+  urlMatch: string[];
   resolver: (props: { url: string }) => Promise<{
     title: string;
     status: StreamingStatus;
@@ -70,3 +71,27 @@ declare module "react-hook-form" {
     disabled?: boolean;
   };
 }
+
+export type Guideline = {
+  // id: string;
+  orientation: "vertical" | "horizontal";
+  left: string;
+  right: string;
+  top: string;
+  bottom: string;
+  offset: number;
+};
+
+export type GridItem = {
+  url: string;
+  sourceHandlerId: string;
+  column: number;
+  row: number;
+};
+
+export type GridItemPosition = GridItem & {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};

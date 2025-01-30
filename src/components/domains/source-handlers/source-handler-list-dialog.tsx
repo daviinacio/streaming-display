@@ -13,13 +13,18 @@ import {
   TableCell,
   TableRow,
 } from "@/components/ui";
+import useAlertDialog from "@/hooks/use-alert-dialog";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
 import { SourceHandler } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { EyeOffIcon, PencilIcon, TrashIcon } from "lucide-react";
+import {
+  EyeOffIcon,
+  PencilIcon,
+  PlusCircleIcon,
+  TrashIcon,
+} from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
 import { SourceHandlerEditDialog } from "./source-handler-edit-dialog";
-import useAlertDialog from "@/hooks/use-alert-dialog";
 
 export type SourceHandlerListDialogProps = PropsWithChildren;
 
@@ -49,7 +54,7 @@ export function SourceHandlerListDialog({
   }, []);
 
   const handleView = useCallback((id: string) => {
-    console.log("view", id);
+    console.log("view", `'${id}'`);
   }, []);
 
   const handleEdit = useCallback(
@@ -85,7 +90,7 @@ export function SourceHandlerListDialog({
           <DialogHeader>
             <DialogTitle>Source handlers</DialogTitle>
             <DialogDescription>
-              Used to extract metadata from different URLs
+              Manage built-in and custom source handlers
             </DialogDescription>
           </DialogHeader>
           <div className="h-full">
@@ -99,7 +104,7 @@ export function SourceHandlerListDialog({
 
             <div className="mt-2">
               <div className="flex justify-between">
-                <h3 className="text-sm font-semibold">External handlers</h3>
+                <h3 className="text-sm font-semibold">Custom handlers</h3>
                 <Button
                   variant="link"
                   size="link"
@@ -111,27 +116,31 @@ export function SourceHandlerListDialog({
               </div>
 
               <SourceHandlerList
-                handlers={
-                  sh.external.filter((h) => !h.hidden || showHidden)
-                  // .toSorted((a, b) => (String(a) > String(b) ? -1 : 1))
-                }
+                handlers={sh.custom.filter((h) => !h.hidden || showHidden)}
                 onView={handleView}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
             </div>
           </div>
-          <DialogFooter className="flex-col">
+          <DialogFooter className="md:justify-between md:flex-row">
             <div className="grid sm:flex gap-2">
-              {/* <Button type="button" variant="outline">
+              {/* <Button type="button" variant="outline" className="gap-2">
+                <ImportIcon className="size-4" />
                 Import
               </Button> */}
-              <Button type="button" variant="outline" onClick={handleCreate}>
-                Create
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCreate}
+                className="gap-2"
+              >
+                <PlusCircleIcon className="size-4" />
+                Create custom
               </Button>
             </div>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" className="md:hidden">
                 Close
               </Button>
             </DialogClose>
@@ -178,6 +187,9 @@ export function SourceHandlerList({
               onClick={() => onView && onView(handler.id)}
             >
               <div className="flex items-center gap-2">
+                {handler.icon && (
+                  <img src={handler.icon} className="size-4 select-none" />
+                )}
                 {handler.label}
                 {handler.hidden && <EyeOffIcon className="w-4 h-4" />}
               </div>
@@ -187,7 +199,7 @@ export function SourceHandlerList({
               <TableCell className="w-0 p-1">
                 <Button
                   onClick={() => onEdit && onEdit(handler.id)}
-                  className="h-7 w-7 hover:bg-muted-foreground hover:text-background"
+                  className="h-7 w-7 hover:!bg-muted-foreground hover:!text-background"
                   variant="ghost"
                   size="icon"
                 >
@@ -200,7 +212,7 @@ export function SourceHandlerList({
               <TableCell className="w-0 p-1">
                 <Button
                   onClick={() => onDelete && onDelete(handler.id)}
-                  className="h-7 w-7 hover:bg-destructive hover:text-destructive-foreground"
+                  className="h-7 w-7 hover:!bg-destructive hover:!text-destructive-foreground"
                   variant="ghost"
                   size="icon"
                 >

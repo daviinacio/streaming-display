@@ -16,23 +16,31 @@ import {
 import { Form, FormField } from "@/components/ui/form";
 import { CodeEditor } from "@/components/widget/code-editor";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
+import { JavascriptSchema } from "@/lib/schema";
 import { normalizeIdentifier } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PropsWithChildren, useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { RunSourceHandlerDialog } from "./run-source-handler-dialog";
+import { PlayIcon } from "lucide-react";
 
 const defaultResolverJs = `async ({ url }) => {
+  /**
+   * A source handler should return the following attributes:
+   * 
+   * title: string
+   * status: 'success' | 'error' | 'unavailable'
+   * sourceUrl: string
+  */
   return {}
 }
 `;
 
-const requiredReturns = ["title", "status", "sourceUrl"];
-
 const SourceHandlerSchema = z.object({
   id: z.string().min(3, "Minimum of 3 characters"),
-  label: z.string().min(5, "Minimum of 5 characters"),
+  label: z.string().min(3, "Minimum of 3 characters"),
   version: z.string().optional().default("v1.0.0"), //.min(1, "Required"), // TODO implement a version Input and Schema
   logo: z
     .object({
@@ -41,53 +49,9 @@ const SourceHandlerSchema = z.object({
     })
     .optional(),
   urlMatch: z.array(z.string()).min(1, "Required"),
-  resolver: z
-    .string()
-    .min(1, "Required")
-    .superRefine((js, ctx) => {
-      try {
-        eval(js);
-      } catch (_) {
-        return ctx.addIssue({
-          code: "custom",
-          message: "Invalid javascript",
-        });
-      }
-
-      const returnPart = js.substring(js.lastIndexOf("return"));
-      if (!returnPart.includes("{")) {
-        return ctx.addIssue({
-          code: "custom",
-          message: "The resolver should return an object",
-        });
-      }
-
-      const returnAttributes = (function () {
-        let returnAttributes = returnPart.substring(
-          returnPart.lastIndexOf("return")
-        );
-        returnAttributes = returnAttributes.substring(
-          returnAttributes.indexOf("{") + 1
-        );
-        returnAttributes = returnAttributes.substring(
-          0,
-          returnAttributes.indexOf("}")
-        );
-
-        return returnAttributes.split(",").map((at) => at.split(":")[0].trim());
-      })();
-
-      const missingAttributes = requiredReturns.filter(
-        (at) => !returnAttributes.includes(at)
-      );
-
-      if (missingAttributes.length > 0) {
-        return ctx.addIssue({
-          code: "custom",
-          message: `Missing returning: ${missingAttributes.join(", ")}`,
-        });
-      }
-    }),
+  resolver: JavascriptSchema({
+    requiredReturns: ["title", "status", "sourceUrl"],
+  }),
   allow: z.object({
     fullscreen: z.boolean().default(false),
     pip: z.boolean().default(false),
@@ -97,7 +61,30 @@ const SourceHandlerSchema = z.object({
   hidden: z.boolean().default(false),
 });
 
-type SourceHandlerSchema = z.infer<typeof SourceHandlerSchema>;
+export type SourceHandlerSchema = z.infer<typeof SourceHandlerSchema>;
+
+const defaultValues: Partial<SourceHandlerSchema> = {
+  label: "",
+  id: "",
+  allow: {
+    fullscreen: true,
+    pip: true,
+    refresh: true,
+    volume: true,
+  },
+};
+
+export function sourceHandlerSchemaToJavascript(data: SourceHandlerSchema) {
+  const code =
+    "export default " +
+    JSON.stringify({
+      ...data,
+      resolver: "$resolver",
+    }).replace('"$resolver"', data.resolver);
+
+  const encodedJs = encodeURIComponent(code);
+  return "data:text/javascript;charset=utf-8," + encodedJs;
+}
 
 export type SourceHandlerEditDialogProps = PropsWithChildren<{
   id?: string;
@@ -114,14 +101,11 @@ export function SourceHandlerEditDialog({
   const sh = useSourceHandlers();
 
   // @ts-ignore
-  const defaultValues = useMemo<SourceHandlerSchema>(() => {
+  const initialValues = useMemo<SourceHandlerSchema>(() => {
     const source = sh.getById(id);
     const resolver = source?.resolver.toString() || defaultResolverJs;
     return {
-      ...{
-        label: "",
-        id: "",
-      },
+      ...defaultValues,
       ...source,
       resolver,
     };
@@ -129,12 +113,12 @@ export function SourceHandlerEditDialog({
 
   const form = useForm<SourceHandlerSchema>({
     resolver: zodResolver(SourceHandlerSchema),
-    defaultValues,
+    defaultValues: initialValues,
   });
 
   useEffect(() => {
-    form.reset(defaultValues);
-  }, [defaultValues]);
+    form.reset(initialValues);
+  }, [initialValues]);
 
   const handleSubmit = useCallback(
     (data: SourceHandlerSchema) => {
@@ -145,14 +129,7 @@ export function SourceHandlerEditDialog({
         return;
       }
 
-      const javascriptCode =
-        "export default " +
-        JSON.stringify({
-          ...data,
-          resolver: "$resolver",
-        }).replace('"$resolver"', data.resolver);
-
-      sh.save(data.id, javascriptCode);
+      sh.save(data.id, sourceHandlerSchemaToJavascript(data));
       onOpenChange && onOpenChange(false);
 
       toast.success("Source handler successfully saved");
@@ -162,7 +139,9 @@ export function SourceHandlerEditDialog({
 
   useEffect(() => {
     if (id) return;
-    form.setValue("id", normalizeIdentifier(form.watch("label")) || "");
+    form.setValue("id", normalizeIdentifier(form.watch("label")) || "", {
+      shouldValidate: !!form.formState.errors["id"],
+    });
   }, [form.watch("label")]);
 
   return (
@@ -170,20 +149,26 @@ export function SourceHandlerEditDialog({
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
 
       <DialogContent
-        className="sm:max-w-[700px] h-full sm:h-[570px]"
+        className="sm:max-w-[700px] h-full sm:h-[700px]"
         onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(event) => event.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>{id ? "Edit" : "Create"} source handler</DialogTitle>
-          <DialogDescription>TODO: type a description</DialogDescription>
+          <DialogTitle>
+            {id ? "Edit" : "Create"} custom source handler
+          </DialogTitle>
+          <DialogDescription>
+            A source handler defines how to process and display content from a
+            specific url.
+          </DialogDescription>
         </DialogHeader>
         <Form
           form={form}
           onSubmit={form.handleSubmit(handleSubmit)}
           className="h-full -m-1 flex flex-col"
         >
-          <ScrollArea fit>
-            <div className="h-full grid gap-4 p-1">
+          <ScrollArea fit scrollBarClassName="translate-x-3">
+            <div className="h-full flex flex-col gap-4 p-1">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <FormField control={form.control} name="label" label="Label">
                   <Input placeholder="Type a name" data-1p-ignore />
@@ -214,23 +199,35 @@ export function SourceHandlerEditDialog({
                 </FormField>
               </div>
 
-              <div>
+              <div className="flex-1">
                 <FormField
                   control={form.control}
                   name="resolver"
                   label="Resolver function"
+                  className="h-full"
                   action={
-                    <FormField
-                      control={form.control}
-                      className="mb-1"
-                      name="hidden"
-                      label="Hidden"
-                    >
-                      <Checkbox className="font-bold" />
-                    </FormField>
+                    <div className="flex items-center gap-2">
+                      <RunSourceHandlerDialog sourceHandler={form.watch()}>
+                        <Button
+                          variant="ghost"
+                          className="p-0 pr-2 pl-1 h-fit gap-1"
+                        >
+                          <PlayIcon className="size-4 text-primary" />
+                          <span className="text-sm">Run</span>
+                        </Button>
+                      </RunSourceHandlerDialog>
+                      <FormField
+                        control={form.control}
+                        // className="mb-1"
+                        name="hidden"
+                        label="Hidden"
+                      >
+                        <Checkbox className="font-bold" />
+                      </FormField>
+                    </div>
                   }
                 >
-                  <CodeEditor />
+                  <CodeEditor className="min-h-[200px]" />
                 </FormField>
               </div>
 
@@ -242,16 +239,8 @@ export function SourceHandlerEditDialog({
                   <FormField
                     control={form.control}
                     className="flex-none"
-                    name="allow.fullscreen"
-                    label="Fullscreen"
-                  >
-                    <Checkbox />
-                  </FormField>
-                  <FormField
-                    control={form.control}
-                    className="flex-none"
-                    name="allow.pip"
-                    label="Picture-in-picture"
+                    name="allow.volume"
+                    label="Volume"
                   >
                     <Checkbox />
                   </FormField>
@@ -266,8 +255,16 @@ export function SourceHandlerEditDialog({
                   <FormField
                     control={form.control}
                     className="flex-none"
-                    name="allow.volume"
-                    label="Volume"
+                    name="allow.pip"
+                    label="Picture-in-picture"
+                  >
+                    <Checkbox />
+                  </FormField>
+                  <FormField
+                    control={form.control}
+                    className="flex-none"
+                    name="allow.fullscreen"
+                    label="Fullscreen"
                   >
                     <Checkbox />
                   </FormField>
@@ -276,13 +273,12 @@ export function SourceHandlerEditDialog({
             </div>
           </ScrollArea>
           <DialogFooter>
+            <Button type="submit">Save</Button>
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 Cancel
               </Button>
             </DialogClose>
-
-            <Button type="submit">Submit</Button>
           </DialogFooter>
         </Form>
       </DialogContent>

@@ -25,3 +25,5 @@ dist-ssr
 
 
 **/external-source-handlers/*.js
+
+vite.config.js

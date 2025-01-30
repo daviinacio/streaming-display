@@ -1,10 +1,38 @@
 <!DOCTYPE html>
+<!--
+
+
+    ____    __ ___    _ _     __ _ _ __  _ __  ___
+   |  _  \ / _` | \  / / |   / _` |  _ \|  _ \/ __|
+   | |_ ) | (_| |\ \/ /| |  | (_| | |_) | |_) \__ \
+   |____ / \__,_| \__/ |_|   \__,_|  __/|  __/|___/
+         copyright <%= year %> <%= version %> |_|   |_|  
+
+Created by daviinacio
+
+-->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Streaming Display v2</title>
+    <title><%= title %></title>
+    <meta name="theme-color" content="#1eb857" />
+    <script>
+      // Sets tailwind theme before client render
+      const isBrowserDarkMode = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      const preferences =
+        JSON.parse(localStorage.getItem("preferences") || "{}") || {};
+
+      const isDarkMode =
+        preferences.theme === "dark" ||
+        (preferences.theme === "system" && isBrowserDarkMode);
+      window.document.documentElement.classList.add(
+        isDarkMode ? "dark" : "light"
+      );
+    </script>
   </head>
   <body>
     <div id="root"></div>

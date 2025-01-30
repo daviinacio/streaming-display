@@ -70,7 +70,8 @@ export function InputTextList({
             "w-full justify-start hover:bg-transparent",
             "border border-input  shadow-sm",
             "focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring",
-            open && "border-ring ring-1 ring-ring",
+            open &&
+              "border-ring ring-1 ring-ring group-[.field-error]:ring-destructive",
             "group-[.field-warning]:border-warning group-[.field-warning]:focus:ring-warning",
             "group-[.field-error]:border-destructive group-[.field-error]:focus:ring-destructive",
 
@@ -106,15 +107,14 @@ export function InputTextList({
           </ScrollArea>
         </div>
         <DialogFooter>
+          <Button type="button" onClick={handleUpdate}>
+            Update
+          </Button>
           <DialogClose asChild>
             <Button type="button" variant="outline">
               Cancel
             </Button>
           </DialogClose>
-
-          <Button type="button" onClick={handleUpdate}>
-            Update
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -142,6 +142,16 @@ export function ValueListEdit({
             value={value}
             onChange={(e) => onChange && onChange(i, e.currentTarget.value)}
             placeholder={placeholder}
+            onKeyDown={(e) => {
+              if (e.keyCode === 13) {
+                const nextInput =
+                  e.currentTarget.parentElement?.parentElement?.nextElementSibling?.querySelector(
+                    "input"
+                  );
+
+                nextInput?.focus();
+              }
+            }}
             iconPosition="right"
             icon={
               (onRemove && i !== valueList.length - 1 && (

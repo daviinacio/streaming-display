@@ -78,12 +78,12 @@ export default {
   plugins: [
     require("tailwindcss-animate"),
     plugin(({ addVariant }) => {
-      addVariant('fullscreen', '.fullscreen &')
-      addVariant('fs', '.fullscreen &')
-      addVariant('drag-over', ':is(&.drag-over, .drag-over &)')
-      addVariant('do', ':is(&.drag-over, .drag-over &)')
-      addVariant('parent-hover', '*:hover > &')
-      addVariant('p-hover', '*:hover > &')
+      // addVariant('fullscreen', '.fullscreen &')
+      // addVariant('fs', '.fullscreen &')
+      // addVariant('drag-over', ':is(&.drag-over, .drag-over &)')
+      // addVariant('do', ':is(&.drag-over, .drag-over &)')
+      // addVariant('parent-hover', '*:hover > &')
+      // addVariant('p-hover', '*:hover > &')
     })
   ],
 }

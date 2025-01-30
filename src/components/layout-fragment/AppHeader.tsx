@@ -24,7 +24,7 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
       <div
         className={cn(
           "flex justify-between items-center",
-          "gap-2 sm:gap-4 h-full container mx-auto",
+          "gap-2 sm:gap-4 h-full",
           "pl-4 pr-2"
         )}
       >

@@ -1,7 +1,8 @@
 export default {
-  id: 'youtube-handler',
+  id: 'youtube',
   version: '1.0.0',
   label: 'Youtube',
+  icon: "/handler/youtube/icon.png",
   logo: {
     url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Logo_of_YouTube_%282015-2017%29.svg/1280px-Logo_of_YouTube_%282015-2017%29.svg.png',
     height: '30px'
@@ -23,7 +24,7 @@ export default {
   },
   allow: {
     fullscreen: true,
-    pip: true,
+    pip: false,
     refresh: true,
     volume: true
   },
