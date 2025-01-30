@@ -1,3 +1,4 @@
+<a id="readme-top"></a>
 
 [contributors-shield]: https://img.shields.io/github/contributors/daviinacio/streaming-display.svg?style=for-the-badge
 [contributors-url]: https://github.com/daviinacio/streaming-display/graphs/contributors
@@ -27,7 +28,7 @@
 
   <p align="center">
     
-Centralize all streamings in the same place.
+Centralize all live streamings in one place.
     <br />
     <a href="https://github.com/daviinacio/streaming-display"><strong>Explore the docs »</strong></a>
     <br />
