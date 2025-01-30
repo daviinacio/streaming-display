@@ -27,6 +27,9 @@ export function CodeEditor({
       rules: [],
       colors: {
         "editor.background": "#09090b",
+        "editor.selectionBackground": "#1eb85750",
+        "editor.selectionHighlight": "#1eb857",
+        // "editor.lineHighlightBackground": "#1eb857",
       },
     });
 

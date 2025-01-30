@@ -1,50 +1,77 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[contributors-shield]: https://img.shields.io/github/contributors/daviinacio/streaming-display.svg?style=for-the-badge
+[contributors-url]: https://github.com/daviinacio/streaming-display/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/daviinacio/streaming-display.svg?style=for-the-badge
+[forks-url]: https://github.com/daviinacio/streaming-display/network/members
+[stars-shield]: https://img.shields.io/github/stars/daviinacio/streaming-display.svg?style=for-the-badge
+[stars-url]: https://github.com/daviinacio/streaming-display/stargazers
+[issues-shield]: https://img.shields.io/github/issues/daviinacio/streaming-display.svg?style=for-the-badge
+[issues-url]: https://github.com/daviinacio/streaming-display/issues
 
-Currently, two official plugins are available:
+<div align="center">
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
 
-## Expanding the ESLint configuration
+</div>
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+<br />
+<div align="center">
+  <a href="https://github.com/daviinacio/streaming-display">
+    <img src="doc/logo.svg" alt="Logo" width="80" height="80">
+  </a>
 
-- Configure the top-level `parserOptions` property like this:
+  <h3 align="center">Streaming Display <sub>v2</sub></h3>
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+  <p align="center">
+    
+Centralize all streamings in the same place.
+    <br />
+    <a href="https://github.com/daviinacio/streaming-display"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://streaming-display.onrender.com/">View Demo</a>
+    &middot;
+    <a href="https://github.com/daviinacio/streaming-display/issues/new?labels=bug&template=Blank+issue">Report Bug</a>
+    &middot;
+    <a href="https://github.com/daviinacio/streaming-display/issues/new?labels=enhancement">Request Feature</a>
+  </p>
+</div>
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+### Features
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+- Built-in and custom source handlers
+  - Source handlers handles with specific URLs in order to obtain its metadata required for displaying the streaming video.
+  - Custom handlers can be created through modern editor, and can be tested before saving.
+  - Custom handlers are stored in localStorage.
+  - Custom handlers expands the software capabilities.
+- URL drag-n-drop
+- Multiple instances
+- Move streamings through different instances
+- Draggable video grid.
+- Standardized video controls
+- Dark theme
+  - Follows the system theme changing if it matches with the current system color schema.
+- Fully responsible
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+### Screenshots
+
+
+| List of source handlers | Source Handler Editor |
+|:-:|:-:|
+|![Source Handler List Dialog](/doc/source-handlers-list-dialog.webp)|![Source Handler Edit Dialog](/doc/source-handler-edit-dialog.webp)|
+
+| List of url match | Test handler |
+|:-:|:-:|
+|![Input Text List](/doc/input-text-list.webp)|![Run Handler Dialog](/doc/run-source-handler-dialog.webp)|
+
+
+### Top contributors:
+
+<a href="https://github.com/daviinacio/streaming-display/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=daviinacio/streaming-display" alt="contrib.rocks image" />
+</a>
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>

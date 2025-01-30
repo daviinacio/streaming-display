@@ -6,8 +6,8 @@ export function HeaderButton({ className, children, ...props }: ButtonProps) {
   return (
     <Button
       className={cn(
-        "p-2 rounded-full hover:bg-black/10",
-        "group text-white, hover:text-white",
+        "p-2 rounded-full hover:md:bg-black/10 active:bg-black/10",
+        "group text-white active:text-white hover:md:text-white",
         className
       )}
       variant="ghost"
