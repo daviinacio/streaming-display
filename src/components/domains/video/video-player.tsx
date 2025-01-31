@@ -22,6 +22,7 @@ import ReactPlayer from "react-player";
 import FadeLoader from "react-spinners/FadeLoader";
 import { GridItem } from "../grid/grid-item";
 import { videoPlayerReducer } from "./video-player-reducer";
+import { usePreference } from "@/hooks/use-preference";
 
 type VideoPlayerProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
   item: GridItemPosition;
@@ -39,6 +40,7 @@ export function VideoPlayer({
 }: VideoPlayerProps) {
   const sh = useSourceHandlers();
   const handler = useMemo(() => sh.getById(item.sourceHandlerId), [sh]);
+  const preferences = usePreference();
 
   const [state, dispatch] = useReducer(videoPlayerReducer, {});
 
@@ -75,7 +77,17 @@ export function VideoPlayer({
         key="player"
         className={cn(
           "h-full w-full pointer-events-none relative",
-          state.pip && "hidden"
+          state.pip && "hidden",
+          preferences.getItem("maximize-video") && [
+            "[&_video]:object-cover",
+            "[&_iframe]:w-[200vw]",
+          ],
+          "[&_iframe]:absolute",
+          "[&_iframe]:top-[50%]",
+          "[&_iframe]:translate-x-[-50%]",
+          "[&_iframe]:translate-y-[-50%]",
+          "[&_iframe]:left-[50%]",
+          "[&_iframe]:object-cover"
         )}
       >
         <div
@@ -99,6 +111,11 @@ export function VideoPlayer({
           onEnded={handleError}
           onError={handleError}
           controls={false}
+          config={{
+            youtube: {
+              playerVars: { showinfo: 1 },
+            },
+          }}
           {...state}
         />
       </div>
@@ -124,7 +141,13 @@ export function VideoPlayer({
           "p-1 pl-3"
         )}
       >
-        <p className={cn("text-2xl font-semibold", "drop-shadow-text", "")}>
+        <p
+          className={cn(
+            "text-2xl font-semibold truncate",
+            "drop-shadow-text",
+            ""
+          )}
+        >
           {data.title}
         </p>
       </div>
@@ -169,8 +192,8 @@ export function ActionButton({ className, children, ...props }: ButtonProps) {
   return (
     <Button
       className={cn(
-        "p-2 rounded-full hover:bg-black/5",
-        "group hover:text-white ",
+        "p-2 rounded-full active:bg-black/5 md:hover:bg-black/5",
+        "group active:text-white md:hover:text-white ",
         "transition-colors",
         className
       )}

@@ -9,11 +9,13 @@ import {
 export type Preferences = {
   theme: "system" | "light" | "dark";
   locale: string;
+  ["maximize-video"]: boolean;
 };
 
 const defaultPreferences: Preferences = {
   theme: "system",
   locale: "system",
+  ["maximize-video"]: false,
 };
 
 const storageKey = "preferences";

@@ -5,14 +5,21 @@ import {
   ThemeButton,
 } from "@/components/widget";
 import { cn } from "@/lib/utils";
-import { ExternalLinkIcon, FileCogIcon } from "lucide-react";
+import {
+  ExpandIcon,
+  ExternalLinkIcon,
+  FileCogIcon,
+  ShrinkIcon,
+} from "lucide-react";
 import { HTMLAttributes } from "react";
 import { SourceHandlerListDialog } from "../domains/source-handlers/source-handler-list-dialog";
 import { Button } from "../ui";
+import { usePreference } from "@/hooks/use-preference";
 
 export type AppHeaderProps = HTMLAttributes<HTMLHeadElement>;
 
 export function AppHeader({ className, ...props }: AppHeaderProps) {
+  const preferences = usePreference();
   return (
     <header
       {...props}
@@ -46,16 +53,36 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
           </div>
         </div>
         <div className="flex items-center sm:gap-1">
+          <HeaderButton
+            title={
+              preferences.getItem("maximize-video")
+                ? "Minimize video"
+                : "Maximize video"
+            }
+            onClick={() => {
+              preferences.setItem(
+                "maximize-video",
+                !preferences.getItem("maximize-video")
+              );
+            }}
+          >
+            {preferences.getItem("maximize-video") ? (
+              <ShrinkIcon />
+            ) : (
+              <ExpandIcon />
+            )}
+          </HeaderButton>
+
           <SourceHandlerListDialog>
             <span>
-              <HeaderButton>
+              <HeaderButton title="Source handlers">
                 <FileCogIcon />
               </HeaderButton>
             </span>
           </SourceHandlerListDialog>
 
-          <ThemeButton />
-          <FullscreenButton />
+          <ThemeButton title="Theme" />
+          <FullscreenButton title="Fullscreen" />
         </div>
       </div>
     </header>

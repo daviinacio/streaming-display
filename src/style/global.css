@@ -119,3 +119,18 @@ body,
 img {
   -webkit-user-drag: none;
 }
+
+
+/* .player-wrapper {
+  width: auto;
+  height: auto;
+}
+
+.react-player {
+  padding-top: 56.25%;
+  position: relative;
+}
+
+.react-player>div {
+  position: absolute;
+} */

@@ -17,14 +17,14 @@ import { Form, FormField } from "@/components/ui/form";
 import { CodeEditor } from "@/components/widget/code-editor";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
 import { JavascriptSchema } from "@/lib/schema";
-import { normalizeIdentifier } from "@/lib/utils";
+import { normalizeIdentifier, objectToEncodedJavascript } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PlayIcon } from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RunSourceHandlerDialog } from "./run-source-handler-dialog";
-import { PlayIcon } from "lucide-react";
 
 const defaultResolverJs = `async ({ url }) => {
   /**
@@ -74,18 +74,6 @@ const defaultValues: Partial<SourceHandlerSchema> = {
   },
 };
 
-export function sourceHandlerSchemaToJavascript(data: SourceHandlerSchema) {
-  const code =
-    "export default " +
-    JSON.stringify({
-      ...data,
-      resolver: "$resolver",
-    }).replace('"$resolver"', data.resolver);
-
-  const encodedJs = encodeURIComponent(code);
-  return "data:text/javascript;charset=utf-8," + encodedJs;
-}
-
 export type SourceHandlerEditDialogProps = PropsWithChildren<{
   id?: string;
   open?: boolean;
@@ -129,7 +117,7 @@ export function SourceHandlerEditDialog({
         return;
       }
 
-      sh.save(data.id, sourceHandlerSchemaToJavascript(data));
+      sh.save(data.id, objectToEncodedJavascript(data, ["resolver"]));
       onOpenChange && onOpenChange(false);
 
       toast.success("Source handler successfully saved");

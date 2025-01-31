@@ -39,7 +39,9 @@ export default function GridViewPage() {
     [sh, gridItems]
   );
 
-  useEffect(() => {}, [handleAddItem]);
+  useEffect(() => {
+    handleAddItem("https://www.youtube.com/watch?v=c_i2pAMy3nA");
+  }, [handleAddItem]);
 
   // useEffect(() => {
   //   Promise.all(

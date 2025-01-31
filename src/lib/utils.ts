@@ -208,3 +208,60 @@ export function findWildcard(list: string[] | undefined, search: string) {
     it.split("*").every((its) => search.indexOf(its) >= 0)
   );
 }
+
+const fnParts = ["async", "function", "const"] as const;
+
+export function objectToJavascript(obj: Object, fnList?: string[]) {
+  type K = keyof typeof obj;
+  const temp = { ...obj };
+
+  ((fnList || []) as K[]).forEach((key) => {
+    // @ts-ignore
+    temp[key] = `__${key}__`;
+  });
+
+  const functions =
+    (fnList as K[]) ||
+    (Object.keys(obj) as K[]).reduce((acc, key) => {
+      const value = obj[key];
+      const isFunction =
+        typeof value === "function" ||
+        (typeof value === "string" &&
+          fnParts.some((f) => String(value).trim().startsWith(f)));
+
+      if (!isFunction) return acc;
+
+      acc.push(key);
+      // @ts-ignore
+      temp[key] = `__${key}__`;
+      return acc;
+    }, [] as Array<K>);
+
+  let js = `export default ${JSON.stringify(temp)}`;
+
+  functions.forEach((key) => {
+    if (!obj[key]) return;
+    js = js.replace(`"__${key}__"`, obj[key].toString());
+  });
+
+  return js;
+}
+
+export function objectToEncodedJavascript(obj: Object, fnList?: string[]) {
+  const js = objectToJavascript(obj, fnList);
+  const encodedJs = encodeURIComponent(js);
+  return `data:text/javascript;charset=utf-8,${encodedJs}`;
+}
+
+export function downloadUrl(url: string, filename: string) {
+  var element = document.createElement("a");
+  element.setAttribute("href", url);
+  element.setAttribute("download", filename);
+
+  element.style.display = "none";
+  document.body.appendChild(element);
+
+  element.click();
+
+  document.body.removeChild(element);
+}

@@ -1,5 +1,6 @@
 import {
   Button,
+  ButtonProps,
   Dialog,
   DialogClose,
   DialogContent,
@@ -12,19 +13,25 @@ import {
   TableBody,
   TableCell,
   TableRow,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui";
 import useAlertDialog from "@/hooks/use-alert-dialog";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
 import { SourceHandler } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, downloadUrl, objectToJavascript } from "@/lib/utils";
 import {
   EyeOffIcon,
+  FileDownIcon,
   PencilIcon,
   PlusCircleIcon,
   TrashIcon,
 } from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
 import { SourceHandlerEditDialog } from "./source-handler-edit-dialog";
+import { Slot } from "@radix-ui/react-slot";
 
 export type SourceHandlerListDialogProps = PropsWithChildren;
 
@@ -81,6 +88,19 @@ export function SourceHandlerListDialog({
     [sh]
   );
 
+  const handleExport = useCallback(
+    async (id: string) => {
+      const handler = sh.getById(id);
+      if (!handler) return;
+      const js = objectToJavascript(handler);
+      downloadUrl(
+        "data:text/javascript;charset=utf-8," + encodeURIComponent(js),
+        `${handler.label}.js`
+      );
+    },
+    [sh]
+  );
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -120,6 +140,7 @@ export function SourceHandlerListDialog({
                 onView={handleView}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onExport={handleExport}
               />
             </div>
           </div>
@@ -162,6 +183,7 @@ export type SourceHandlerListProps = {
   onView?: (id: string) => void;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onExport?: (id: string) => void;
 };
 
 export function SourceHandlerList({
@@ -169,6 +191,7 @@ export function SourceHandlerList({
   onView,
   onEdit,
   onDelete,
+  onExport,
 }: SourceHandlerListProps) {
   return (
     <Table>
@@ -195,34 +218,70 @@ export function SourceHandlerList({
               </div>
             </TableCell>
 
+            {onExport && (
+              <TableCell className="w-0 p-1">
+                <TableCellActionButton
+                  title="Export"
+                  onClick={() => onExport && onExport(handler.id)}
+                >
+                  <FileDownIcon />
+                </TableCellActionButton>
+              </TableCell>
+            )}
+
             {onEdit && (
               <TableCell className="w-0 p-1">
-                <Button
+                <TableCellActionButton
+                  title="Edit"
                   onClick={() => onEdit && onEdit(handler.id)}
-                  className="h-7 w-7 hover:!bg-muted-foreground hover:!text-background"
-                  variant="ghost"
-                  size="icon"
                 >
-                  <PencilIcon className="w-4 h-4" />
-                </Button>
+                  <PencilIcon />
+                </TableCellActionButton>
               </TableCell>
             )}
 
             {onDelete && (
               <TableCell className="w-0 p-1">
-                <Button
+                <TableCellActionButton
+                  title="Delete"
                   onClick={() => onDelete && onDelete(handler.id)}
-                  className="h-7 w-7 hover:!bg-destructive hover:!text-destructive-foreground"
-                  variant="ghost"
-                  size="icon"
+                  className="hover:!bg-destructive hover:!text-destructive-foreground"
                 >
-                  <TrashIcon className="w-4 h-4" />
-                </Button>
+                  <TrashIcon />
+                </TableCellActionButton>
               </TableCell>
             )}
           </TableRow>
         ))}
       </TableBody>
     </Table>
+  );
+}
+
+function TableCellActionButton({
+  className,
+  children,
+  title,
+  ...props
+}: ButtonProps) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            className={cn(
+              "h-7 w-7 hover:!bg-muted-foreground hover:!text-background",
+              className
+            )}
+            variant="ghost"
+            size="icon"
+            {...props}
+          >
+            <Slot className={cn("w-4 h-4")}>{children}</Slot>
+          </Button>
+        </TooltipTrigger>
+        {title && <TooltipContent>{title}</TooltipContent>}
+      </Tooltip>
+    </TooltipProvider>
   );
 }

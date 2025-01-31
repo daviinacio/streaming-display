@@ -14,17 +14,19 @@ import { Form, FormField } from "@/components/ui/form";
 import { SimpleCodeEditor } from "@/components/widget/code-editor-simple";
 import { useTempStorage } from "@/hooks/use-temp-storage";
 import { SourceHandler } from "@/lib/types";
-import { cn, findWildcard } from "@/lib/utils";
+import {
+  cn,
+  findWildcard,
+  objectToEncodedJavascript,
+  objectToJavascript,
+} from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { PlayIcon } from "lucide-react";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import {
-  SourceHandlerSchema,
-  sourceHandlerSchemaToJavascript,
-} from "./source-handler-edit-dialog";
+import { SourceHandlerSchema } from "./source-handler-edit-dialog";
 
 export type RunSourceHandlerDialogProps = PropsWithChildren<{
   sourceHandler: SourceHandlerSchema;
@@ -70,9 +72,13 @@ export function RunSourceHandlerDialog({
       try {
         const handler = (
           await import(
-            /* @vite-ignore */ sourceHandlerSchemaToJavascript(sourceHandler)
+            /* @vite-ignore */ objectToEncodedJavascript(sourceHandler, [
+              "resolver",
+            ])
           )
         ).default as SourceHandler;
+
+        console.log(decodeURIComponent(objectToJavascript(sourceHandler)));
 
         const result = await handler.resolver({
           url,
