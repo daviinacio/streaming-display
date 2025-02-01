@@ -16,6 +16,12 @@ import {
 import { Form, FormField } from "@/components/ui/form";
 import { CodeEditor } from "@/components/widget";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
+import { JavascriptSchema } from "@/lib/schema";
+import {
+  SourceHandlerParams,
+  SourceHandlerResult,
+  SourceHandlerResultRequired,
+} from "@/lib/types";
 import { normalizeIdentifier } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlayIcon } from "lucide-react";
@@ -24,36 +30,15 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RunSourceHandlerDialog } from "./run-source-handler-dialog";
-import { JavascriptSchema } from "@/lib/schema";
-
-/**
- * @typedef {Object} Result
- * @property {string} title - Displayed title
- * @property {'success'|'error'|'unavailable'} status - Status of the streaming
- * @property {string} sourceUrl - Url to the source content
- *
- * @param {Object} props
- * @param {string} props.url Url provided by user
- *
- * @return {Result}
- */
 
 const resolverOpening = "//###---OPEN---###//";
 const resolverClosing = "//###---CLOSE---###//";
 
 const editorTypescriptDefinition = `
-  type Params =  {
-    url: string
-  };
-  
+  type Params = ${SourceHandlerParams}
+  type Result = ${SourceHandlerResult}
+
   const $params: Params as const;
-
-  type Result = {
-    title: string;
-    status: 'success'|'error'|'unavailable';
-    sourceUrl: string;
-  };
-
   let $result: Result;
 `;
 
@@ -77,7 +62,7 @@ const SourceHandlerSchema = z.object({
   urlMatch: z.array(z.string()).min(1, "Required"),
   resolver: JavascriptSchema({
     transform: wrapSourceHandlerResolverJavascript,
-    requiredReturns: ["title", "status", "sourceUrl"],
+    requiredReturns: SourceHandlerResultRequired,
   }),
   allow: z.object({
     fullscreen: z.boolean().default(false),

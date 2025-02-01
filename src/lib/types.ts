@@ -24,23 +24,39 @@ export type PlayerAllow = {
   volume?: boolean;
 };
 
-export type StreamingStatus = "success" | "error" | "unavailable";
+export const StreamingStatus = ["online", "offline", "away"] as const;
+export type StreamingStatus = (typeof StreamingStatus)[number];
+
+export const SourceHandlerParams = `{
+  url: string;
+};` as const;
+
+export type SourceHandlerParams = {
+  url: string;
+};
+
+export const SourceHandlerResult = `{
+  title: string;
+  status: ${StreamingStatus.map((s) => `'${s}'`).join(" | ")};
+  sourceUrl: string;
+};` as const;
+
+export type SourceHandlerResult = {
+  title: string;
+  status: StreamingStatus;
+  sourceUrl: string;
+};
+
+export const SourceHandlerResultRequired = ["title", "status", "sourceUrl"];
 
 export type SourceHandler = {
   id: string;
   version: string;
   label: string;
   icon?: string;
-  logo?: {
-    url: string;
-    height?: string;
-  };
+  logo?: string;
   urlMatch: string[];
-  resolver: (props: { url: string }) => Promise<{
-    title: string;
-    status: StreamingStatus;
-    sourceUrl: string;
-  }>;
+  resolver: ($params: SourceHandlerParams) => Promise<SourceHandlerResult>;
   allow?: PlayerAllow;
   hidden?: boolean;
 };
@@ -72,23 +88,13 @@ declare module "react-hook-form" {
   };
 }
 
-export type Guideline = {
-  // id: string;
-  orientation: "vertical" | "horizontal";
-  left: string;
-  right: string;
-  top: string;
-  bottom: string;
-  offset: number;
-};
-
 export type GridItem = {
   url: string;
   column: number;
   row: number;
 };
 
-export type GridItemPosition = GridItem & {
+export type GridItemPosition = {
   x: number;
   y: number;
   width: number;

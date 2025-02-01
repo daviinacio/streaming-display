@@ -8,7 +8,6 @@ import {
 } from "@/components/ui";
 import { usePreference } from "@/hooks/use-preference";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
-import { GridItemPosition } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
   EnterFullScreenIcon,
@@ -28,7 +27,6 @@ import {
   XIcon,
 } from "lucide-react";
 import {
-  HTMLAttributes,
   useCallback,
   useEffect,
   useMemo,
@@ -38,7 +36,7 @@ import {
 } from "react";
 import ReactPlayer from "react-player";
 import FadeLoader from "react-spinners/FadeLoader";
-import { GridItem } from "../grid/grid-item";
+import { GridItem, GridItemProps } from "../grid/grid-item";
 import { videoPlayerReducer } from "./video-player-reducer";
 
 const inactivityTimeout = 2500;
@@ -49,22 +47,11 @@ const activityEvents = [
   "mouseup",
 ] as const;
 
-type VideoPlayerProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
-  item: GridItemPosition;
-  grid: {
-    width: number;
-    height: number;
-  };
-};
+type VideoPlayerProps = GridItemProps;
 
-export function VideoPlayer({
-  item,
-  grid,
-  className,
-  ...props
-}: VideoPlayerProps) {
+export function VideoPlayer({ item, className, ...props }: VideoPlayerProps) {
   const sh = useSourceHandlers();
-  const handler = useMemo(() => sh.findHandler(item.url), [sh]);
+  const handler = useMemo(() => sh.findHandler(item.url), [sh, item.url]);
   const preferences = usePreference();
 
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -75,6 +62,7 @@ export function VideoPlayer({
   const [state, dispatch] = useReducer(
     videoPlayerReducer,
     preferences.getItem("player-preferences")[item.url] || {
+      playing: true,
       muted: true,
       volume: 0.5,
     }
@@ -194,12 +182,10 @@ export function VideoPlayer({
   return (
     <GridItem
       item={item}
-      grid={grid}
       className={cn(
         "p-1 transition-[opacity] duration-500 ease-in delay-300",
         state.fullscreen &&
           "[.grid:has(&)>div]:opacity-0 [.grid:has(&)>div]:delay-0 [.grid:has(&)>div]:ease-out !opacity-100",
-        // isInactive && "!pointer-events-none",
         className
       )}
       isFullscreen={state.fullscreen}
@@ -210,7 +196,8 @@ export function VideoPlayer({
         className={cn(
           "h-full w-full ring-1 ring-input rounded-lg overflow-hidden",
           "bg-black text-white relative group/player z-[4] transition-all duration-300",
-          !isInactive && "hover:ring-primary hover:ring-2"
+          !isInactive && "hover:ring-primary hover:ring-2",
+          isInactive && "cursor-none"
         )}
         ref={wrapperRef}
       >
@@ -257,6 +244,13 @@ export function VideoPlayer({
             {...state}
           />
         </div>
+
+        {handler.logo && (
+          <img
+            src={handler.logo}
+            className="absolute top-4 right-4 bg-cover h-[32px] max-h-[10%] pointer-events-none"
+          />
+        )}
 
         {state.pip && (
           <div
@@ -306,7 +300,7 @@ export function VideoPlayer({
             "p-1 transition-[opacity] duration-300",
             "opacity-0",
             !isInactive && "group-hover/player:opacity-100",
-            "bg-gradient-to-t from-black/80 pointer-events-none"
+            "bg-gradient-to-t from-black/80 pointer-events-auto"
           )}
         >
           <div className="flex items-center">

@@ -1,4 +1,4 @@
-import { GridItemPosition } from "@/lib/types";
+import { GridItemPosition, GridItem as GridItemType } from "@/lib/types";
 import { cn, exclude } from "@/lib/utils";
 import {
   forwardRef,
@@ -20,39 +20,44 @@ const animationSpeed = 15;
 const animationTick = 1;
 
 export type GridItemProps = HTMLAttributes<HTMLDivElement> & {
-  item: GridItemPosition;
+  item: GridItemType;
+  position?: GridItemPosition;
   isFullscreen?: boolean;
-  grid: {
-    width: number;
-    height: number;
+  grid?: {
+    columns: number;
+    rows: number;
   };
 };
 
 export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
-  ({ children, className, grid, item, isFullscreen, ...props }, ref) => {
+  ({ children, className, grid, position, isFullscreen, ...props }, ref) => {
+    grid = grid || { columns: 1, rows: 1 };
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     useImperativeHandle(ref, () => playerWrapperRef.current!, []);
 
     const fullscreenPosition = useMemo(
       () => ({
-        gridColumnEnd: grid.width,
+        gridColumnEnd: grid.columns,
         gridColumnStart: 1,
-        gridRowEnd: grid.height,
+        gridRowEnd: grid.rows,
         gridRowStart: 1,
         zIndex: 10,
       }),
-      [grid.width, grid.height]
+      [grid.columns, grid.rows]
     );
 
     useEffect(() => {
-      if (!playerWrapperRef.current) return;
+      if (!playerWrapperRef.current || !position) return;
       const newState = isFullscreen
         ? fullscreenPosition
         : {
-            gridColumnEnd: Math.max((item.x || 0) + (item.width || 0), 1),
-            gridColumnStart: Math.max(item.x || 0, 1),
-            gridRowEnd: Math.max((item.y || 0) + (item.height || 0), 1),
-            gridRowStart: Math.max(item.y || 0, 1),
+            gridColumnEnd: Math.max(
+              (position.x || 0) + (position.width || 0),
+              1
+            ),
+            gridColumnStart: Math.max(position.x || 0, 1),
+            gridRowEnd: Math.max((position.y || 0) + (position.height || 0), 1),
+            gridRowStart: Math.max(position.y || 0, 1),
             zIndex: 1,
           };
 
@@ -101,7 +106,7 @@ export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
       }, animationTick);
 
       return () => clearInterval(interval);
-    }, [playerWrapperRef, isFullscreen]);
+    }, [playerWrapperRef, isFullscreen, position]);
 
     return (
       <div

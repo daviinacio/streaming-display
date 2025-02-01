@@ -1,33 +1,11 @@
+import { Grid } from "@/components/domains/grid/grid";
 import { VideoPlayer } from "@/components/domains/video/video-player";
-import { GridItem, GridItemPosition } from "@/lib/types";
-import { useMemo, useState } from "react";
+import { GridItem } from "@/lib/types";
+import { useEffect, useState } from "react";
 
-const gWidth = 1200;
-const gHeight = 1200;
 export default function GridViewPage() {
   // const sh = useSourceHandlers();
-  const [gridItems] = useState<GridItem[]>([
-    {
-      url: "https://www.twitch.tv/oisakura",
-      column: 0,
-      row: 0,
-    },
-    {
-      url: "https://www.twitch.tv/rbiana",
-      column: 0,
-      row: 1,
-    },
-    {
-      url: "https://www.twitch.tv/isaroza_",
-      column: 1,
-      row: 0,
-    },
-    {
-      url: "https://www.twitch.tv/casaldenerd",
-      column: 1,
-      row: 1,
-    },
-  ]);
+  const [gridItems, setGridItems] = useState<GridItem[]>([]);
 
   // const handleAddItem = useCallback(
   //   (url: string) => {
@@ -58,40 +36,27 @@ export default function GridViewPage() {
   //   [sh, gridItems]
   // );
 
-  const items = useMemo<GridItemPosition[]>(
-    () =>
-      gridItems.map((gi) => {
-        return {
-          ...gi,
-          x: gi.row * (gWidth / 2), //gWidth / 4,
-          y: gi.column * (gHeight / 2), //gHeight / 4,
-          width: gWidth / 2,
-          height: gHeight / 2,
-        };
-      }),
-    [gridItems]
-  );
+  useEffect(() => {
+    const direction = true;
+    setTimeout(() => {
+      // Flip items
+      setGridItems((prev) => {
+        const result = prev.map((p) => ({ ...p }));
+        prev.forEach((_, i, a) => {
+          const ni = (i + 1) % a.length;
+          result[direction ? i : ni].row = a[direction ? ni : i].row;
+          result[direction ? i : ni].column = a[direction ? ni : i].column;
+        });
+        return result;
+      });
+    }, 100);
+  }, []);
 
   return (
-    <div className="h-full bg-primary">
-      <div
-        className="h-full grid p-1 group/grid  bg-background rounded-t-xl"
-        style={{
-          gridTemplateColumns: `repeat(${gWidth}, 1fr)`,
-          gridTemplateRows: `repeat(${gHeight}, 1fr)`,
-        }}
-      >
-        {items.map((it) => (
-          <VideoPlayer
-            key={it.url}
-            item={it}
-            grid={{
-              width: gWidth,
-              height: gHeight,
-            }}
-          />
-        ))}
-      </div>
-    </div>
+    <Grid>
+      {gridItems.map((it) => (
+        <VideoPlayer key={it.url} item={it} />
+      ))}
+    </Grid>
   );
 }

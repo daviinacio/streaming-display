@@ -72,7 +72,7 @@ export function PreferenceProvider({ children }: PropsWithChildren) {
   );
 
   const getItem = useCallback<PreferenceContextProps["getItem"]>(
-    (key) => data[key],
+    (key) => data[key] || defaultPreferences[key],
     [data]
   );
 

@@ -3,10 +3,7 @@ export default {
   version: '1.0.0',
   label: 'Twitch',
   icon: "/handler/twitch/icon.png",
-  logo: {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Logo_of_YouTube_%282015-2017%29.svg/1280px-Logo_of_YouTube_%282015-2017%29.svg.png',
-    height: '30px'
-  },
+  logo: '/handler/twitch/logo.png',
   urlMatch: [
     'https://www.twitch.tv/*',
   ],
@@ -19,7 +16,7 @@ export default {
 
     $result = {
       title: channelName,
-      status: "success",
+      status: "online",
       sourceUrl: url,
     }
 

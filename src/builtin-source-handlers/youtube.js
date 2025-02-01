@@ -3,10 +3,7 @@ export default {
   version: '1.0.0',
   label: 'Youtube',
   icon: "/handler/youtube/icon.png",
-  logo: {
-    url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Logo_of_YouTube_%282015-2017%29.svg/1280px-Logo_of_YouTube_%282015-2017%29.svg.png',
-    height: '30px'
-  },
+  logo: '/handler/youtube/logo.png',
   urlMatch: [
     'https://www.youtube.com/watch?*',
     'https://youtu.be/*',
@@ -21,7 +18,7 @@ export default {
 
     $result = {
       title: metadata.title,
-      status: "success",
+      status: "online",
       sourceUrl: url,
     }
 
