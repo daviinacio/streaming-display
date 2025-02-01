@@ -7,12 +7,14 @@ import { useEffect } from "react";
 export type CodeEditorProps = Omit<TextareaProps, "onChange"> & {
   onChange?: (value?: string) => void;
   language?: string;
+  typescriptDefinition?: string;
 };
 
 export function CodeEditor({
   defaultValue,
   value,
   language = "javascript",
+  typescriptDefinition,
   className,
   ...props
 }: CodeEditorProps) {
@@ -41,6 +43,13 @@ export function CodeEditor({
         "editor.background": "#ffffff",
       },
     });
+
+    try {
+      monaco.languages.typescript.javascriptDefaults.addExtraLib(
+        typescriptDefinition,
+        "myDefault:some.file.d.ts"
+      );
+    } catch (err) {}
   }, [monaco]);
 
   if (!monaco) return;
@@ -65,6 +74,7 @@ export function CodeEditor({
       )}
       options={{
         ligature: true,
+        tabSize: 2,
         inlineSuggest: true,
         fontSize: "14px",
         formatOnType: true,

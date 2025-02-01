@@ -9,13 +9,17 @@ import {
 export type Preferences = {
   theme: "system" | "light" | "dark";
   locale: string;
-  ["maximize-video"]: boolean;
+  ["fit-video"]: boolean;
+  ["player-preferences"]: {
+    [key: string]: any;
+  };
 };
 
 const defaultPreferences: Preferences = {
   theme: "system",
   locale: "system",
-  ["maximize-video"]: false,
+  ["fit-video"]: false,
+  ["player-preferences"]: {},
 };
 
 const storageKey = "preferences";
@@ -47,8 +51,8 @@ export function PreferenceProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     function storageHandler(event: StorageEvent) {
-      console.log("storage event");
       if (event.key === storageKey) {
+        console.log("storage event");
         setData(deserializePreferences());
       }
     }

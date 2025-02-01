@@ -21,7 +21,8 @@ import {
 import useAlertDialog from "@/hooks/use-alert-dialog";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
 import { SourceHandler } from "@/lib/types";
-import { cn, downloadUrl, objectToJavascript } from "@/lib/utils";
+import { cn, downloadUrl } from "@/lib/utils";
+import { Slot } from "@radix-ui/react-slot";
 import {
   EyeOffIcon,
   FileDownIcon,
@@ -30,8 +31,8 @@ import {
   TrashIcon,
 } from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { SourceHandlerEditDialog } from "./source-handler-edit-dialog";
-import { Slot } from "@radix-ui/react-slot";
 
 export type SourceHandlerListDialogProps = PropsWithChildren;
 
@@ -91,12 +92,15 @@ export function SourceHandlerListDialog({
   const handleExport = useCallback(
     async (id: string) => {
       const handler = sh.getById(id);
-      if (!handler) return;
-      const js = objectToJavascript(handler);
-      downloadUrl(
-        "data:text/javascript;charset=utf-8," + encodeURIComponent(js),
-        `${handler.label}.js`
-      );
+      const content = sh.getJavascriptById(id);
+
+      if (!content || !handler) {
+        toast.error(`Download not available for '${handler?.label}'`);
+        return;
+      }
+
+      const filename = `${handler.id}.${handler.version}.handler.js`;
+      downloadUrl(content, filename);
     },
     [sh]
   );
@@ -218,17 +222,6 @@ export function SourceHandlerList({
               </div>
             </TableCell>
 
-            {onExport && (
-              <TableCell className="w-0 p-1">
-                <TableCellActionButton
-                  title="Export"
-                  onClick={() => onExport && onExport(handler.id)}
-                >
-                  <FileDownIcon />
-                </TableCellActionButton>
-              </TableCell>
-            )}
-
             {onEdit && (
               <TableCell className="w-0 p-1">
                 <TableCellActionButton
@@ -236,6 +229,17 @@ export function SourceHandlerList({
                   onClick={() => onEdit && onEdit(handler.id)}
                 >
                   <PencilIcon />
+                </TableCellActionButton>
+              </TableCell>
+            )}
+
+            {onExport && (
+              <TableCell className="w-0 p-1">
+                <TableCellActionButton
+                  title="Export"
+                  onClick={() => onExport && onExport(handler.id)}
+                >
+                  <FileDownIcon />
                 </TableCellActionButton>
               </TableCell>
             )}

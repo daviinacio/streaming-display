@@ -121,16 +121,15 @@ img {
 }
 
 
-/* .player-wrapper {
-  width: auto;
-  height: auto;
+/* Avoid dialog overlay stacking */
+[role="overlay"]~[role="overlay"] {
+  background: transparent;
 }
 
-.react-player {
-  padding-top: 56.25%;
-  position: relative;
+[role=dialog][data-state=open] {
+  z-index: 10;
 }
 
-.react-player>div {
-  position: absolute;
-} */
+[role=dialog][data-state=open]:not(:has(~ [role=dialog][data-state=open])) {
+  z-index: 50;
+}

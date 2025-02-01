@@ -8,19 +8,25 @@ export default {
     height: '30px'
   },
   urlMatch: [
-    'https://www.youtube.com/watch?v=*',
-    'https://youtu.be/*'
+    'https://www.youtube.com/watch?*',
+    'https://youtu.be/*',
   ],
-  resolver: async ({ url }) => {
+  resolver: async ($params = {}) => {
+    let $result = {};
+    //###---OPEN---###//
+    const { url } = $params;
     const metadata = await fetch(
       `https://noembed.com/embed?url=${url}`
     ).then((response) => response.json())
 
-    return {
+    $result = {
       title: metadata.title,
       status: "success",
       sourceUrl: url,
     }
+
+    //###---CLOSE---###//
+    return $result;
   },
   allow: {
     fullscreen: true,

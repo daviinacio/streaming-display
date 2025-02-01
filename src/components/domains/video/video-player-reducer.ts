@@ -47,6 +47,9 @@ export function videoPlayerReducer(
     case "pip":
       return { ...state, pip: action.value };
 
+    case "fullscreen":
+      return { ...state, fullscreen: action.value };
+
     case "volume":
       return { ...state, volume: action.value };
 

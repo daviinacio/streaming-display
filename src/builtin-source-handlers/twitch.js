@@ -8,19 +8,23 @@ export default {
     height: '30px'
   },
   urlMatch: [
-    'https://www.youtube.com/watch?v=*',
-    'https://youtu.be/*'
+    'https://www.twitch.tv/*',
   ],
-  resolver: async ({ url }) => {
-    const metadata = await fetch(
-      `https://noembed.com/embed?url=${url}`
-    ).then((response) => response.json())
+  resolver: async ($params = {}) => {
+    let $result = {};
+    //###---OPEN---###//
+    const { url } = $params;
+    let channelName = url.split("/")[3] || "";
+    channelName = (channelName && channelName.split('?')[0]) || "";
 
-    return {
-      title: metadata.title,
+    $result = {
+      title: channelName,
       status: "success",
       sourceUrl: url,
     }
+
+    //###---CLOSE---###//
+    return $result;
   },
   allow: {
     fullscreen: true,

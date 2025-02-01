@@ -14,10 +14,9 @@ import {
   ScrollArea,
 } from "@/components/ui";
 import { Form, FormField } from "@/components/ui/form";
-import { CodeEditor } from "@/components/widget/code-editor";
+import { CodeEditor } from "@/components/widget";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
-import { JavascriptSchema } from "@/lib/schema";
-import { normalizeIdentifier, objectToEncodedJavascript } from "@/lib/utils";
+import { normalizeIdentifier } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlayIcon } from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect, useMemo } from "react";
@@ -25,23 +24,50 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RunSourceHandlerDialog } from "./run-source-handler-dialog";
+import { JavascriptSchema } from "@/lib/schema";
 
-const defaultResolverJs = `async ({ url }) => {
-  /**
-   * A source handler should return the following attributes:
-   * 
-   * title: string
-   * status: 'success' | 'error' | 'unavailable'
-   * sourceUrl: string
-  */
-  return {}
-}
+/**
+ * @typedef {Object} Result
+ * @property {string} title - Displayed title
+ * @property {'success'|'error'|'unavailable'} status - Status of the streaming
+ * @property {string} sourceUrl - Url to the source content
+ *
+ * @param {Object} props
+ * @param {string} props.url Url provided by user
+ *
+ * @return {Result}
+ */
+
+const resolverOpening = "//###---OPEN---###//";
+const resolverClosing = "//###---CLOSE---###//";
+
+const editorTypescriptDefinition = `
+  type Params =  {
+    url: string
+  };
+  
+  const $params: Params as const;
+
+  type Result = {
+    title: string;
+    status: 'success'|'error'|'unavailable';
+    sourceUrl: string;
+  };
+
+  let $result: Result;
+`;
+
+const defaultResolverJs = `const { url } = $params;
+
+$result = {
+  
+};
 `;
 
 const SourceHandlerSchema = z.object({
   id: z.string().min(3, "Minimum of 3 characters"),
   label: z.string().min(3, "Minimum of 3 characters"),
-  version: z.string().optional().default("v1.0.0"), //.min(1, "Required"), // TODO implement a version Input and Schema
+  version: z.string().optional().default("1.0.0"), // TODO implement a version Input and Schema
   logo: z
     .object({
       url: z.string().url(),
@@ -50,6 +76,7 @@ const SourceHandlerSchema = z.object({
     .optional(),
   urlMatch: z.array(z.string()).min(1, "Required"),
   resolver: JavascriptSchema({
+    transform: wrapSourceHandlerResolverJavascript,
     requiredReturns: ["title", "status", "sourceUrl"],
   }),
   allow: z.object({
@@ -74,6 +101,32 @@ const defaultValues: Partial<SourceHandlerSchema> = {
   },
 };
 
+export function wrapSourceHandlerResolverJavascript(resolverContent: string) {
+  return `async ($params = {}) => {
+    let $result = {};
+    ${resolverOpening}${"\n"}${resolverContent}${"\n"}${resolverClosing}
+    return $result;
+  }`;
+}
+
+export function sourceHandlerSchemaToJavascript(data: SourceHandlerSchema) {
+  const code =
+    "export default " +
+    JSON.stringify(
+      {
+        ...data,
+        resolver: "$resolver",
+      },
+      undefined,
+      2
+    ).replace(
+      '"$resolver"',
+      wrapSourceHandlerResolverJavascript(data.resolver)
+    );
+  const encodedJs = encodeURIComponent(code);
+  return "data:text/javascript;charset=utf-8," + encodedJs;
+}
+
 export type SourceHandlerEditDialogProps = PropsWithChildren<{
   id?: string;
   open?: boolean;
@@ -91,11 +144,22 @@ export function SourceHandlerEditDialog({
   // @ts-ignore
   const initialValues = useMemo<SourceHandlerSchema>(() => {
     const source = sh.getById(id);
-    const resolver = source?.resolver.toString() || defaultResolverJs;
+    let resolver = source?.resolver.toString();
+
+    if (resolver && resolver.indexOf(resolverOpening) >= 0) {
+      resolver =
+        resolver
+          .substring(
+            resolver.indexOf(resolverOpening) + resolverOpening.length,
+            resolver.lastIndexOf(resolverClosing)
+          )
+          .trim() + "\n";
+    }
+
     return {
       ...defaultValues,
       ...source,
-      resolver,
+      resolver: resolver || defaultResolverJs,
     };
   }, [id, open]);
 
@@ -117,7 +181,7 @@ export function SourceHandlerEditDialog({
         return;
       }
 
-      sh.save(data.id, objectToEncodedJavascript(data, ["resolver"]));
+      sh.save(data.id, sourceHandlerSchemaToJavascript(data));
       onOpenChange && onOpenChange(false);
 
       toast.success("Source handler successfully saved");
@@ -135,7 +199,6 @@ export function SourceHandlerEditDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-
       <DialogContent
         className="sm:max-w-[700px] h-full sm:h-[700px]"
         onPointerDownOutside={(e) => e.preventDefault()}
@@ -215,7 +278,10 @@ export function SourceHandlerEditDialog({
                     </div>
                   }
                 >
-                  <CodeEditor className="min-h-[200px]" />
+                  <CodeEditor
+                    className="min-h-[200px]"
+                    typescriptDefinition={editorTypescriptDefinition}
+                  />
                 </FormField>
               </div>
 

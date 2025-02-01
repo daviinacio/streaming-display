@@ -84,7 +84,6 @@ export type Guideline = {
 
 export type GridItem = {
   url: string;
-  sourceHandlerId: string;
   column: number;
   row: number;
 };

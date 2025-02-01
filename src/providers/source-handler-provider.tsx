@@ -15,6 +15,7 @@ type SourceHandlerProviderProps = {
 type SourceHandlerContextProps = {
   findHandler: (url: string) => SourceHandler | null;
   getById: (id?: string) => SourceHandler | null;
+  getJavascriptById: (id?: string) => string | null;
   save: (id: string, javascriptCode: string) => void;
   remove: (id: string) => void;
   builtIn: SourceHandler[];
@@ -67,6 +68,16 @@ export function SourceHandlerProvider({
     })();
   }, [reload]);
 
+  useEffect(() => {
+    function storageHandler(event: StorageEvent) {
+      if (event.key !== storageKey) return;
+      setReload((r) => !r);
+    }
+
+    window.addEventListener("storage", storageHandler);
+    return () => window.removeEventListener("storage", storageHandler);
+  }, []);
+
   const handleFindState = useCallback<SourceHandlerContextProps["findHandler"]>(
     (url) => {
       return handlers.find((h) => findWildcard(h.urlMatch, url)) || null;
@@ -79,6 +90,17 @@ export function SourceHandlerProvider({
       return Object.freeze(handlers.find((h) => h.id === id) || null);
     },
     [handlers]
+  );
+
+  const getJavascriptById = useCallback<
+    SourceHandlerContextProps["getJavascriptById"]
+  >(
+    (id) => {
+      const index = customHandlers.findIndex((h) => h.id === id);
+      if (index === -1) return null;
+      return readCustomHandlers()[index];
+    },
+    [customHandlers]
   );
 
   const save = useCallback<SourceHandlerContextProps["save"]>(
@@ -110,6 +132,7 @@ export function SourceHandlerProvider({
         builtIn: builtInHandlers,
         custom: customHandlers,
         getById,
+        getJavascriptById,
         save,
         remove,
       }}

@@ -54,23 +54,15 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
         </div>
         <div className="flex items-center sm:gap-1">
           <HeaderButton
-            title={
-              preferences.getItem("maximize-video")
-                ? "Minimize video"
-                : "Maximize video"
-            }
+            title="Fit video"
             onClick={() => {
               preferences.setItem(
-                "maximize-video",
-                !preferences.getItem("maximize-video")
+                "fit-video",
+                !preferences.getItem("fit-video")
               );
             }}
           >
-            {preferences.getItem("maximize-video") ? (
-              <ShrinkIcon />
-            ) : (
-              <ExpandIcon />
-            )}
+            {preferences.getItem("fit-video") ? <ShrinkIcon /> : <ExpandIcon />}
           </HeaderButton>
 
           <SourceHandlerListDialog>

@@ -192,12 +192,10 @@ export function normalizeIdentifier(identifier?: string) {
       // Replaces all grammatical accents for non accents characters
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      // Replace ' ' and '_' to '-'
-      .replace(/[ _]/g, "-")
+      // Replace space to '_'
+      .replace(/[ ]/g, "-")
       // Remove all not allowed characters
-      .replace(/[^.0-9_a-zA-Z]/g, "")
-      // Avoid multiple dots character
-      .replace(/[.]{2,}/g, ".")
+      .replace(/[^-0-9_a-zA-Z]/g, "")
       // Remove all not alphanumeric characters on start
       .replace(/^[^0-9a-zA-Z]/g, "")
   );
@@ -209,49 +207,49 @@ export function findWildcard(list: string[] | undefined, search: string) {
   );
 }
 
-const fnParts = ["async", "function", "const"] as const;
+// const fnParts = ["async", "function", "const"] as const;
 
-export function objectToJavascript(obj: Object, fnList?: string[]) {
-  type K = keyof typeof obj;
-  const temp = { ...obj };
+// export function objectToJavascript(obj: Object, fnList?: string[]) {
+//   type K = keyof typeof obj;
+//   const temp = { ...obj };
 
-  ((fnList || []) as K[]).forEach((key) => {
-    // @ts-ignore
-    temp[key] = `__${key}__`;
-  });
+//   ((fnList || []) as K[]).forEach((key) => {
+//     // @ts-ignore
+//     temp[key] = `__${key}__`;
+//   });
 
-  const functions =
-    (fnList as K[]) ||
-    (Object.keys(obj) as K[]).reduce((acc, key) => {
-      const value = obj[key];
-      const isFunction =
-        typeof value === "function" ||
-        (typeof value === "string" &&
-          fnParts.some((f) => String(value).trim().startsWith(f)));
+//   const functions =
+//     (fnList as K[]) ||
+//     (Object.keys(obj) as K[]).reduce((acc, key) => {
+//       const value = obj[key];
+//       const isFunction =
+//         typeof value === "function" ||
+//         (typeof value === "string" &&
+//           fnParts.some((f) => String(value).trim().startsWith(f)));
 
-      if (!isFunction) return acc;
+//       if (!isFunction) return acc;
 
-      acc.push(key);
-      // @ts-ignore
-      temp[key] = `__${key}__`;
-      return acc;
-    }, [] as Array<K>);
+//       acc.push(key);
+//       // @ts-ignore
+//       temp[key] = `__${key}__`;
+//       return acc;
+//     }, [] as Array<K>);
 
-  let js = `export default ${JSON.stringify(temp)}`;
+//   let js = `export default ${JSON.stringify(temp)}`;
 
-  functions.forEach((key) => {
-    if (!obj[key]) return;
-    js = js.replace(`"__${key}__"`, obj[key].toString());
-  });
+//   functions.forEach((key) => {
+//     if (!obj[key]) return;
+//     js = js.replace(`"__${key}__"`, obj[key].toString());
+//   });
 
-  return js;
-}
+//   return js;
+// }
 
-export function objectToEncodedJavascript(obj: Object, fnList?: string[]) {
-  const js = objectToJavascript(obj, fnList);
-  const encodedJs = encodeURIComponent(js);
-  return `data:text/javascript;charset=utf-8,${encodedJs}`;
-}
+// export function objectToEncodedJavascript(obj: Object, fnList?: string[]) {
+//   const js = objectToJavascript(obj, fnList);
+//   const encodedJs = encodeURIComponent(js);
+//   return `data:text/javascript;charset=utf-8,${encodedJs}`;
+// }
 
 export function downloadUrl(url: string, filename: string) {
   var element = document.createElement("a");

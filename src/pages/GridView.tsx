@@ -1,68 +1,70 @@
 import { VideoPlayer } from "@/components/domains/video/video-player";
-import { useSourceHandlers } from "@/hooks/use-source-handlers";
 import { GridItem, GridItemPosition } from "@/lib/types";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useMemo, useState } from "react";
 
 const gWidth = 1200;
 const gHeight = 1200;
 export default function GridViewPage() {
-  const sh = useSourceHandlers();
-  const [gridItems, setGridItems] = useState<GridItem[]>([]);
-
-  const handleAddItem = useCallback(
-    (url: string) => {
-      try {
-        if (gridItems.some((gi) => gi.url === url))
-          throw new Error("URL already in the grid");
-
-        const handler = sh.findHandler(url);
-        if (!handler)
-          throw new Error("There's no handler available for this URL");
-
-        const item: GridItem = {
-          column: 1,
-          row: 1,
-          sourceHandlerId: handler.id,
-          url,
-        };
-
-        setGridItems((p) => {
-          return [...p, item];
-        });
-      } catch (err) {
-        if (err instanceof Error) {
-          toast.error(err.message);
-        }
-      }
+  // const sh = useSourceHandlers();
+  const [gridItems] = useState<GridItem[]>([
+    {
+      url: "https://www.twitch.tv/oisakura",
+      column: 0,
+      row: 0,
     },
-    [sh, gridItems]
-  );
+    {
+      url: "https://www.twitch.tv/rbiana",
+      column: 0,
+      row: 1,
+    },
+    {
+      url: "https://www.twitch.tv/isaroza_",
+      column: 1,
+      row: 0,
+    },
+    {
+      url: "https://www.twitch.tv/casaldenerd",
+      column: 1,
+      row: 1,
+    },
+  ]);
 
-  useEffect(() => {
-    handleAddItem("https://www.youtube.com/watch?v=c_i2pAMy3nA");
-  }, [handleAddItem]);
+  // const handleAddItem = useCallback(
+  //   (url: string) => {
+  //     try {
+  //       if (gridItems.some((gi) => gi.url === url))
+  //         throw new Error("URL already in the grid");
 
-  // useEffect(() => {
-  //   Promise.all(
-  //     gridItems.map(async (gi) => {
-  //       console.log(gi.url);
-  //       gi.sourceHandler
-  //         .resolver({
-  //           url: gi.url,
-  //         })
-  //         .then((result) => console.log("resolver", result));
-  //     })
-  //   );
-  // }, [gridItems]);
+  //       const handler = sh.findHandler(url);
+  //       if (!handler)
+  //         throw new Error("There's no handler available for this URL");
+
+  //       const item: GridItem = {
+  //         column: 1,
+  //         row: 1,
+  //         sourceHandlerId: handler.id,
+  //         url,
+  //       };
+
+  //       setGridItems((p) => {
+  //         return [...p, item];
+  //       });
+  //     } catch (err) {
+  //       if (err instanceof Error) {
+  //         toast.error(err.message);
+  //       }
+  //     }
+  //   },
+  //   [sh, gridItems]
+  // );
 
   const items = useMemo<GridItemPosition[]>(
     () =>
       gridItems.map((gi) => {
         return {
           ...gi,
-          x: 1, //gWidth / 4,
-          y: 1, //gHeight / 4,
+          x: gi.row * (gWidth / 2), //gWidth / 4,
+          y: gi.column * (gHeight / 2), //gHeight / 4,
           width: gWidth / 2,
           height: gHeight / 2,
         };
@@ -71,23 +73,25 @@ export default function GridViewPage() {
   );
 
   return (
-    <div
-      className="h-full grid"
-      style={{
-        gridTemplateColumns: `repeat(${gWidth}, 1fr)`,
-        gridTemplateRows: `repeat(${gHeight}, 1fr)`,
-      }}
-    >
-      {items.map((it) => (
-        <VideoPlayer
-          key={it.url}
-          item={it}
-          grid={{
-            width: gWidth,
-            height: gHeight,
-          }}
-        />
-      ))}
+    <div className="h-full bg-primary">
+      <div
+        className="h-full grid p-1 group/grid  bg-background rounded-t-xl"
+        style={{
+          gridTemplateColumns: `repeat(${gWidth}, 1fr)`,
+          gridTemplateRows: `repeat(${gHeight}, 1fr)`,
+        }}
+      >
+        {items.map((it) => (
+          <VideoPlayer
+            key={it.url}
+            item={it}
+            grid={{
+              width: gWidth,
+              height: gHeight,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
