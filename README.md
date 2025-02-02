@@ -59,6 +59,13 @@ Centralize all live streamings in one place.
 
 ### Screenshots
 
+| Empty Grid |
+|:-:|
+| ![Empty Grid](/doc/empty-grid.webp)|
+
+| Grid 2x3 |
+|:-:|
+| ![Grid 2x3](/doc/grid-with-2x3.webp)|
 
 | List of source handlers | Source Handler Editor |
 |:-:|:-:|

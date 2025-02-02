@@ -31,11 +31,13 @@ export type StreamingStatus = (typeof StreamingStatus)[number];
 export const SourceHandlerParams = `{
   url: string;
   minimize: () => void;
+  setRefetchInterval: (value: number | false) => void;
 };` as const;
 
 export type SourceHandlerParams = {
   url: string;
   minimize: () => void;
+  setRefetchInterval: (value: number | false) => void;
 };
 
 export const SourceHandlerResult = `{

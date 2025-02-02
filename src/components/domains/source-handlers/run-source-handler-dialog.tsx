@@ -25,7 +25,6 @@ import {
   SourceHandlerSchema,
   sourceHandlerSchemaToJavascript,
 } from "./source-handler-edit-dialog";
-import { toast } from "sonner";
 
 export type RunSourceHandlerDialogProps = PropsWithChildren<{
   sourceHandler: SourceHandlerSchema;
@@ -77,12 +76,28 @@ export function RunSourceHandlerDialog({
           )
         ).default as SourceHandler;
 
+        form.setValue("result", "Log:\n");
+
         const result = await handler.resolver({
           url,
-          minimize: () => toast.info("Handler triggered minimize"),
+          minimize: () =>
+            form.setValue(
+              "result",
+              form.watch("result") + `Triggered minimize")\n`
+            ),
+          setRefetchInterval: (value) =>
+            form.setValue(
+              "result",
+              form.watch("result") + `refetchInterval = ${value}\n`
+            ),
         });
 
-        form.setValue("result", JSON.stringify(result, undefined, 2));
+        form.setValue(
+          "result",
+          form.watch("result") +
+            "\nData:\n" +
+            JSON.stringify(result, undefined, 2)
+        );
         return result;
       } catch (err) {
         if (err instanceof Error) {

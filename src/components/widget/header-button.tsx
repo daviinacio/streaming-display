@@ -39,7 +39,11 @@ export function HeaderButton({
             </Slot>
           </Button>
         </TooltipTrigger>
-        {title && <TooltipContent>{title}</TooltipContent>}
+        {title && (
+          <TooltipContent className="text-white font-semibold shadow-sm shadow-black">
+            {title}
+          </TooltipContent>
+        )}
       </Tooltip>
     </TooltipProvider>
   );

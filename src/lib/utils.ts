@@ -221,3 +221,23 @@ export function downloadUrl(url: string, filename: string) {
 
   document.body.removeChild(element);
 }
+
+export function bytesToString(bytes: number) {
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  if (bytes <= 0) return "0 B";
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
+
+export function millisecondsToString(milliseconds: number) {
+  if (milliseconds < 1000) return `${milliseconds}ms`;
+  const seconds = milliseconds / 1000;
+  if (seconds < 60) return `${Math.trunc(seconds)}s`;
+  const minutes = seconds / 60;
+  if (minutes < 60) return `${Math.trunc(minutes)}m`;
+  const hours = minutes / 60;
+  if (hours < 24) return `${Math.trunc(hours)}h`;
+  const days = hours / 24;
+  return `${Math.trunc(days)}d`;
+}

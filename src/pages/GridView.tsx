@@ -17,13 +17,19 @@ export default function GridViewPage() {
     setTimeout(() => {
       // Flip items
       setGridItems((prev) => {
-        const result = prev.map((p) => ({ ...p }));
-        prev.forEach((_, i, a) => {
+        const sorted = prev
+          .map((p) => ({ ...p }))
+          .toSorted((a, b) => (a.row >= b.row ? 0 : -1))
+          .toSorted((a, b) => (a.column >= b.column ? 0 : -1));
+        const gridItems = sorted.map((p) => ({ ...p }));
+        // const result =;
+        sorted.forEach((_, i, a) => {
           const ni = (i + 1) % a.length;
-          result[direction ? i : ni].row = a[direction ? ni : i].row;
-          result[direction ? i : ni].column = a[direction ? ni : i].column;
+          gridItems[direction ? i : ni].row = a[direction ? ni : i].row;
+          gridItems[direction ? i : ni].column = a[direction ? ni : i].column;
         });
-        return result;
+
+        return gridItems;
       });
     }, 100);
   }, []);
@@ -145,19 +151,11 @@ export default function GridViewPage() {
           });
         }
 
-        console.log({
-          url,
-          location,
-          currentUrl,
-        });
-
         return gridItems;
       });
     },
     [sh, sh.custom, getLastRowOfColumn]
   );
-
-  // console.table(gridItems);
 
   return (
     <div className="h-full bg-primary">
@@ -165,7 +163,7 @@ export default function GridViewPage() {
         onDrop={handleDrop}
         onlyCenter={true}
         className={cn(
-          "bg-background rounded-t-xl p-0",
+          "bg-background rounded-t-xl p-0 shadow-md shadow-black",
           gridItems.length === 0 && "p-1"
         )}
         disabled={gridItems.length > 0}

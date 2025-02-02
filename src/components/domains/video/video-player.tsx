@@ -14,7 +14,12 @@ import {
 } from "@/components/ui";
 import { usePreference } from "@/hooks/use-preference";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
-import { cn, copyToClipboard, exclude } from "@/lib/utils";
+import {
+  cn,
+  copyToClipboard,
+  exclude,
+  millisecondsToString,
+} from "@/lib/utils";
 import {
   ClipboardCopyIcon,
   EnterFullScreenIcon,
@@ -106,20 +111,33 @@ export function VideoPlayer({
     dispatch({ type: "maximize", value: false });
   }, [handler?.allow?.maximize]);
 
-  const { data, error, refetch } = useQuery({
+  const [refetchInterval, setRefetchInterval] = useState<number | false>(false);
+
+  useEffect(
+    () =>
+      console.log(item.url, {
+        refetchInterval:
+          refetchInterval && millisecondsToString(refetchInterval),
+      }),
+    [refetchInterval]
+  );
+
+  const { data, error, refetch, isFetching, failureCount } = useQuery({
     queryKey: ["handler", handler?.id, item.url],
     queryFn: () =>
       handler &&
       handler.resolver({
         url: item.url,
         minimize: () => console.log("TODO: Implement minimize", item.url),
+        setRefetchInterval,
       }),
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
     staleTime: 60 * 1000,
+    refetchInterval: refetchInterval,
+    // retryDelay: 2 * 1000,
   });
-
-  useEffect(() => {
-    refetch();
-  }, [handler, refetch]);
 
   useEffect(() => {
     if (!wrapperRef.current || !gridItemRef.current) return;
@@ -208,15 +226,25 @@ export function VideoPlayer({
   }, [wrapperRef.current]);
 
   const handleRefresh = useCallback(
-    (err?: any) => {
-      console.log("Refetching", err.message);
-      // console.log(err);
-      refetch();
+    async (err?: any, err2?: any) => {
+      if (err === "force" || err === "hlsError") {
+        console.log("Refetching", err, err2, item.url);
+        await refetch();
+      } else {
+        console.log("Playing", err, err2, item.url);
+      }
+
+      dispatch({ type: "play" });
     },
-    [refetch]
+    [refetch, failureCount]
   );
 
-  console.log({ grid });
+  useEffect(() => {
+    error && dispatch({ type: "maximize", value: false });
+  }, [error]);
+
+  const allowMaximize =
+    handler?.allow?.maximize && !error && grid?.count && grid.count > 1;
 
   return (
     <GridItem
@@ -224,7 +252,9 @@ export function VideoPlayer({
       grid={grid}
       className={cn(className)}
       isMaximized={state.maximize}
-      onDoubleClick={() => dispatch({ type: "toggle-maximize" })}
+      onDoubleClick={() =>
+        allowMaximize && dispatch({ type: "toggle-maximize" })
+      }
       ref={gridItemRef}
       {...props}
     >
@@ -246,18 +276,26 @@ export function VideoPlayer({
               "h-full w-full ",
               "bg-black text-white relative group/player z-[4] rounded-lg overflow-hidden",
               "ring-1 ring-input transition-all duration-300",
-              !isInactive && "hover:ring-primary hover:ring-2",
+              !isInactive && [
+                "hover:ring-2",
+                error ? "hover:ring-destructive" : "hover:ring-primary",
+              ],
               isInactive && "cursor-none"
             )}
             ref={wrapperRef}
           >
             {handler && (
               <>
+                {data && data.sourceUrl && !error && !state.muted && (
+                  <div className="absolute top-2 left-2 z-20 group-hover/player:opacity-0 transition-[opacity] duration-300">
+                    <SpeakerLoudIcon className="size-6" />
+                  </div>
+                )}
                 {data && data.sourceUrl && (
                   <div
                     key="player"
                     className={cn(
-                      "h-full w-full pointer-events-none relative rounded-md overflow-hidden",
+                      "h-full w-full pointer-events-none",
                       state.pip && "hidden",
                       fit && "[&_video]:object-cover",
                       "[&_iframe]:absolute",
@@ -272,7 +310,10 @@ export function VideoPlayer({
                   >
                     <div
                       key="spinner"
-                      className="absolute inset-0 flex items-center justify-center"
+                      className={cn(
+                        "absolute inset-0 flex items-center justify-center",
+                        error && "hidden"
+                      )}
                     >
                       <FadeLoader color="white" />
                     </div>
@@ -294,7 +335,7 @@ export function VideoPlayer({
                       }
                       onEnded={handleRefresh}
                       onError={handleRefresh}
-                      // onBufferEnd={handleRefresh}
+                      onBufferEnd={handleRefresh}
                       controls={false}
                       config={{
                         youtube: {
@@ -385,9 +426,13 @@ export function VideoPlayer({
                       </div>
                     )}
                   </div>
-                  <ActionButton onClick={() => onRemove && onRemove(item.url)}>
-                    <XIcon />
-                  </ActionButton>
+                  {!state.maximize && (
+                    <ActionButton
+                      onClick={() => onRemove && onRemove(item.url)}
+                    >
+                      <XIcon />
+                    </ActionButton>
+                  )}
                 </div>
 
                 <div
@@ -479,7 +524,8 @@ export function VideoPlayer({
                       {handler.allow?.refresh && (
                         <ActionButton
                           title="Refresh link"
-                          onClick={handleRefresh}
+                          className={cn(isFetching && "animate-spin")}
+                          onClick={() => handleRefresh("force", null)}
                         >
                           <ReloadIcon />
                         </ActionButton>
@@ -497,23 +543,18 @@ export function VideoPlayer({
                           )}
                         </ActionButton>
                       )}
-                      {handler.allow?.maximize &&
-                        !error &&
-                        grid?.count &&
-                        grid.count > 1 && (
-                          <ActionButton
-                            title="Maximize"
-                            onClick={() =>
-                              dispatch({ type: "toggle-maximize" })
-                            }
-                          >
-                            {state.maximize ? (
-                              <ExitFullScreenIcon />
-                            ) : (
-                              <EnterFullScreenIcon />
-                            )}
-                          </ActionButton>
-                        )}
+                      {allowMaximize && (
+                        <ActionButton
+                          title="Maximize"
+                          onClick={() => dispatch({ type: "toggle-maximize" })}
+                        >
+                          {state.maximize ? (
+                            <ExitFullScreenIcon />
+                          ) : (
+                            <EnterFullScreenIcon />
+                          )}
+                        </ActionButton>
+                      )}
                     </div>
                   </ScrollArea>
                 </div>
@@ -563,7 +604,11 @@ export function ActionButton({
             </Slot>
           </Button>
         </TooltipTrigger>
-        {title && <TooltipContent>{title}</TooltipContent>}
+        {title && (
+          <TooltipContent className="text-white font-semibold shadow-sm shadow-black">
+            {title}
+          </TooltipContent>
+        )}
       </Tooltip>
     </TooltipProvider>
   );
