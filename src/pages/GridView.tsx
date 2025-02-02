@@ -9,30 +9,7 @@ import { toast } from "sonner";
 
 export default function GridViewPage() {
   const sh = useSourceHandlers();
-  const [gridItems, setGridItems] = useState<GridItem[]>([
-    // {
-    //   // url: "https://www.twitch.tv/oisakura",
-    //   url: "https://www.twitch.tv/paladinxpg",
-    //   column: 1,
-    //   row: 1,
-    // },
-    // {
-    //   url: "https://www.twitch.tv/rbiana",
-    //   column: 0,
-    //   row: 0,
-    // },
-    // {
-    //   url: "https://www.twitch.tv/isaroza_",
-    //   column: 1,
-    //   row: 0,
-    // },
-    // {
-    //   // url: "https://www.twitch.tv/casaldenerd",
-    //   url: "https://www.youtube.com/watch?v=n1rdWFRmAB4",
-    //   column: 0,
-    //   row: 1,
-    // },
-  ]);
+  const [gridItems, setGridItems] = useState<GridItem[]>([]);
 
   useEffect(() => {
     const direction = true;
@@ -59,6 +36,36 @@ export default function GridViewPage() {
       );
     },
     [gridItems]
+  );
+
+  const freeUpRow = useCallback(
+    (
+      gridItems: GridItem[],
+      column: number,
+      row: number,
+      direction: boolean
+    ) => {
+      gridItems
+        .filter(
+          (gi) =>
+            gi.column === column && (direction ? gi.row >= row : gi.row <= row)
+        )
+        .forEach((gi) => {
+          gi.row += direction ? 1 : -1;
+        });
+    },
+    []
+  );
+
+  const freeUpColumn = useCallback(
+    (gridItems: GridItem[], column: number, direction: boolean) => {
+      gridItems
+        .filter((gi) => (direction ? gi.column >= column : gi.column <= column))
+        .forEach((gi) => {
+          gi.column += direction ? 1 : -1;
+        });
+    },
+    []
   );
 
   const handleRemove = useCallback((url: string) => {
@@ -102,33 +109,39 @@ export default function GridViewPage() {
           currentItem.url = url;
         } else if (location === "left" && urlItem) {
         } else if (location === "left") {
-          const newColumn = currentItem.column - 1;
+          const column = currentItem.column - 1;
+          freeUpColumn(gridItems, column, false);
           gridItems.push({
             url,
-            column: newColumn,
-            row: getLastRowOfColumn(newColumn),
+            column,
+            row: getLastRowOfColumn(column),
           });
         } else if (location === "right" && urlItem) {
         } else if (location === "right") {
-          const newColumn = currentItem.column + 1;
+          const column = currentItem.column + 1;
+          freeUpColumn(gridItems, column, true);
           gridItems.push({
             url,
-            column: newColumn,
-            row: getLastRowOfColumn(newColumn),
+            column,
+            row: getLastRowOfColumn(column),
           });
         } else if (location === "top" && urlItem) {
         } else if (location === "top") {
+          const row = currentItem.row - 1;
+          freeUpRow(gridItems, currentItem.column, row, false);
           gridItems.push({
             url,
             column: currentItem.column,
-            row: currentItem.row - 1,
+            row,
           });
         } else if (location === "bottom" && urlItem) {
         } else if (location === "bottom") {
+          const row = currentItem.row + 1;
+          freeUpRow(gridItems, currentItem.column, row, true);
           gridItems.push({
             url,
             column: currentItem.column,
-            row: currentItem.row + 1,
+            row,
           });
         }
 

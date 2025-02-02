@@ -110,7 +110,7 @@ export function SourceHandlerListDialog({
       <Dialog open={open} onOpenChange={setOpen}>
         {children && <DialogTrigger asChild>{children}</DialogTrigger>}
 
-        <DialogContent className="sm:max-w-[400px] h-full sm:h-fit">
+        <DialogContent className="h-full sm:max-w-[400px] sm:min-h-[300px] sm:h-fit">
           <DialogHeader>
             <DialogTitle>Source handlers</DialogTitle>
             <DialogDescription>
@@ -148,7 +148,7 @@ export function SourceHandlerListDialog({
               />
             </div>
           </div>
-          <DialogFooter className="md:justify-between md:flex-row">
+          <DialogFooter className="sm:justify-between sm:flex-row">
             <div className="grid sm:flex gap-2">
               {/* <Button type="button" variant="outline" className="gap-2">
                 <ImportIcon className="size-4" />
@@ -165,7 +165,7 @@ export function SourceHandlerListDialog({
               </Button>
             </div>
             <DialogClose asChild>
-              <Button type="button" variant="outline" className="md:hidden">
+              <Button type="button" variant="outline" className="sm:hidden">
                 Close
               </Button>
             </DialogClose>

@@ -1,19 +1,27 @@
+import { DropArea, DropLocation } from "@/components/drag-n-drop/drop-area";
 import {
   Button,
   ButtonProps,
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
+  ScrollArea,
   Slider,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui";
 import { usePreference } from "@/hooks/use-preference";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
-import { cn, exclude } from "@/lib/utils";
+import { cn, copyToClipboard, exclude } from "@/lib/utils";
 import {
+  ClipboardCopyIcon,
   EnterFullScreenIcon,
   ExitFullScreenIcon,
   PauseIcon,
   PlayIcon,
+  ReloadIcon,
   SpeakerLoudIcon,
   SpeakerModerateIcon,
   SpeakerOffIcon,
@@ -22,6 +30,7 @@ import {
 import { Slot } from "@radix-ui/react-slot";
 import { useQuery } from "@tanstack/react-query";
 import {
+  ExternalLinkIcon,
   PictureInPicture2Icon,
   PictureInPictureIcon,
   XIcon,
@@ -38,9 +47,8 @@ import ReactPlayer from "react-player";
 import FadeLoader from "react-spinners/FadeLoader";
 import { GridItem, GridItemProps } from "../grid/grid-item";
 import { videoPlayerReducer } from "./video-player-reducer";
-import { DropArea, DropLocation } from "@/components/drag-n-drop/drop-area";
 
-const runtimeState = ["fullscreen", "playing"] as const;
+const runtimeState = ["maximize", "playing"] as const;
 
 const inactivityTimeout = 2500;
 const activityEvents = [
@@ -57,6 +65,7 @@ type VideoPlayerProps = Omit<GridItemProps, "onDrop"> & {
 
 export function VideoPlayer({
   item,
+  grid,
   className,
   onDrop,
   onRemove,
@@ -93,23 +102,24 @@ export function VideoPlayer({
   }, [handler?.allow?.pip, state.pip]);
 
   useEffect(() => {
-    if (handler?.allow?.fullscreen) return;
-    dispatch({ type: "fullscreen", value: false });
-  }, [handler?.allow?.fullscreen]);
+    if (handler?.allow?.maximize) return;
+    dispatch({ type: "maximize", value: false });
+  }, [handler?.allow?.maximize]);
 
   const { data, error, refetch } = useQuery({
     queryKey: ["handler", handler?.id, item.url],
-    queryFn: () => handler && handler.resolver(item),
+    queryFn: () =>
+      handler &&
+      handler.resolver({
+        url: item.url,
+        minimize: () => console.log("TODO: Implement minimize", item.url),
+      }),
     staleTime: 60 * 1000,
   });
 
-  const handleError = useCallback(
-    (err?: any) => {
-      console.log(err);
-      refetch();
-    },
-    [refetch]
-  );
+  useEffect(() => {
+    refetch();
+  }, [handler, refetch]);
 
   useEffect(() => {
     if (!wrapperRef.current || !gridItemRef.current) return;
@@ -162,7 +172,14 @@ export function VideoPlayer({
       );
       observer.disconnect();
     };
-  }, [fit, wrapperRef, gridItemRef.current, state.playing, state.fullscreen]);
+  }, [
+    fit,
+    wrapperRef,
+    gridItemRef.current,
+    state.playing,
+    state.maximize,
+    grid?.count,
+  ]);
 
   useEffect(() => {
     if (!wrapperRef.current) return;
@@ -190,15 +207,24 @@ export function VideoPlayer({
     };
   }, [wrapperRef.current]);
 
-  // if (!data || !handler) return <p className="bg-cyan-500">Loading...</p>;
-  // if (!data.sourceUrl) return <p className="bg-cyan-500">Offline</p>;
+  const handleRefresh = useCallback(
+    (err?: any) => {
+      console.log("Refetching", err.message);
+      // console.log(err);
+      refetch();
+    },
+    [refetch]
+  );
+
+  console.log({ grid });
 
   return (
     <GridItem
       item={item}
+      grid={grid}
       className={cn(className)}
-      isFullscreen={state.fullscreen}
-      onDoubleClick={() => dispatch({ type: "toggle-fullscreen" })}
+      isMaximized={state.maximize}
+      onDoubleClick={() => dispatch({ type: "toggle-maximize" })}
       ref={gridItemRef}
       {...props}
     >
@@ -206,15 +232,14 @@ export function VideoPlayer({
         className={cn(
           "h-full",
           "duration-500 ease-in delay-100",
-          state.fullscreen &&
+          state.maximize &&
             "[[role=grid]:has(&)_[role=grid-item]>div]:opacity-0 [[role=grid]:has(&)_[role=grid-item]>div]:delay-0 [[role=grid]:has(&)_[role=grid-item]>div]:ease-out !opacity-100"
         )}
       >
         <DropArea
           className={cn("pointer-events-auto  overflow-hidden p-0")}
           onDrop={(url, location) => onDrop && onDrop(url, location, item.url)}
-          disabled={state.fullscreen}
-          //disabled={(url) => url === item.url}
+          disabled={state.maximize}
         >
           <div
             className={cn(
@@ -241,7 +266,8 @@ export function VideoPlayer({
                       "[&_iframe]:translate-y-[-50%]",
                       "[&_iframe]:left-[50%]",
                       "[&_iframe]:object-cover",
-                      "text-white"
+                      "text-white",
+                      error && "blur-sm"
                     )}
                   >
                     <div
@@ -266,8 +292,9 @@ export function VideoPlayer({
                       onDisablePIP={() =>
                         dispatch({ type: "pip", value: false })
                       }
-                      onEnded={handleError}
-                      onError={handleError}
+                      onEnded={handleRefresh}
+                      onError={handleRefresh}
+                      // onBufferEnd={handleRefresh}
                       controls={false}
                       config={{
                         youtube: {
@@ -279,10 +306,36 @@ export function VideoPlayer({
                   </div>
                 )}
 
+                {error && (
+                  <div
+                    className={cn(
+                      "absolute inset-0 bg-black/70 flex flex-col gap-1 items-center justify-center",
+                      "[&_a]:underline [&_a]:text-base hover:[&_a]:text-destructive text-center"
+                    )}
+                  >
+                    {error.message.split("\n").map((m, i) =>
+                      i === 0 ? (
+                        <h4
+                          key={i}
+                          className="text-4xl text-destructive font-bold mb-2"
+                        >
+                          {m}
+                        </h4>
+                      ) : (
+                        <span
+                          key={i}
+                          className="text-base leading-5"
+                          dangerouslySetInnerHTML={{ __html: m }}
+                        />
+                      )
+                    )}
+                  </div>
+                )}
+
                 {handler.logo && (
                   <img
                     src={handler.logo}
-                    className="absolute top-4 right-4 bg-cover h-[32px] max-h-[10%] pointer-events-none"
+                    className="absolute top-4 right-4 bg-cover h-[32px] min-h-[10px] max-h-[10%] pointer-events-none"
                   />
                 )}
 
@@ -310,16 +363,27 @@ export function VideoPlayer({
                     "bg-gradient-to-b from-black/80 pointer-events-none"
                   )}
                 >
-                  <div className="max-w-[50%] pointer-events-auto">
-                    <p
-                      className={cn(
-                        "text-2xl font-semibold truncate",
-                        "drop-shadow-text",
-                        ""
-                      )}
-                    >
-                      {data?.title}
-                    </p>
+                  <div className="max-w-[70%] pointer-events-auto flex gap-2">
+                    {data?.title && (
+                      <div className="flex gap-1 max-w-full">
+                        <p
+                          className={cn(
+                            "text-2xl font-semibold truncate",
+                            "drop-shadow-text"
+                          )}
+                          onClick={() =>
+                            data?.title && copyToClipboard(data?.title, "Title")
+                          }
+                        >
+                          {data?.title}
+                        </p>
+                        <a href={item.url} target="_blank" rel="noreferrer">
+                          <ActionButton size="sm">
+                            <ExternalLinkIcon />
+                          </ActionButton>
+                        </a>
+                      </div>
+                    )}
                   </div>
                   <ActionButton onClick={() => onRemove && onRemove(item.url)}>
                     <XIcon />
@@ -334,81 +398,124 @@ export function VideoPlayer({
                     "p-1 transition-[opacity] duration-300",
                     "opacity-0",
                     !isInactive && "group-hover/player:opacity-100",
-                    "bg-gradient-to-t from-black/80 ",
+                    "bg-gradient-to-t from-black/80 "
                     // "!pointer-events-none",
-                    (error || !data) && "hidden"
+                    // (error || !data) && "hidden"
                   )}
                 >
-                  <div className="flex items-center">
-                    <ActionButton
-                      onClick={() => dispatch({ type: "toggle-play" })}
+                  <ScrollArea orientation="horizontal" className="max-w-[50%]">
+                    <div
+                      className={cn(
+                        "flex items-center",
+                        (error || !data) && "hidden"
+                      )}
                     >
-                      {state.playing ? <PauseIcon /> : <PlayIcon />}
-                    </ActionButton>
+                      <ActionButton
+                        onClick={() => dispatch({ type: "toggle-play" })}
+                      >
+                        {state.playing ? <PauseIcon /> : <PlayIcon />}
+                      </ActionButton>
 
-                    <HoverCard open={state.muted ? false : undefined}>
-                      <HoverCardTrigger>
+                      {handler.allow?.volume && (
+                        <HoverCard open={state.muted ? false : undefined}>
+                          <HoverCardTrigger>
+                            <ActionButton
+                              className="relative top-0 z-[10]"
+                              onClick={() => dispatch({ type: "toggle-mute" })}
+                            >
+                              {state.muted ? (
+                                <SpeakerOffIcon />
+                              ) : typeof state.volume !== "undefined" ? (
+                                state.volume < 0.2 ? (
+                                  <SpeakerQuietIcon />
+                                ) : state.volume >= 0.2 &&
+                                  state.volume < 0.8 ? (
+                                  <SpeakerModerateIcon />
+                                ) : (
+                                  <SpeakerLoudIcon />
+                                )
+                              ) : undefined}
+                            </ActionButton>
+                          </HoverCardTrigger>
+                          <HoverCardContent
+                            className="w-40 p-4 z-[0] pl-12 rounded-full bg-background/50 flex items-end pointer-events-auto"
+                            side="right"
+                            align="start"
+                            alignOffset={-2}
+                            sideOffset={-46}
+                            onDoubleClick={(e) => e.stopPropagation()}
+                          >
+                            <Slider
+                              defaultValue={[0.8]}
+                              max={1}
+                              step={0.05}
+                              value={[state.volume || 0]}
+                              orientation="horizontal"
+                              onValueChange={(value) =>
+                                dispatch({ type: "volume", value: value[0] })
+                              }
+                            />
+                          </HoverCardContent>
+                        </HoverCard>
+                      )}
+                    </div>
+                  </ScrollArea>
+                  <ScrollArea
+                    orientation="horizontal"
+                    // fit
+                    className="max-w-[50%]"
+                  >
+                    <div className="flex items-center justify-end">
+                      {handler.allow?.copySourceUrl && data?.sourceUrl && (
                         <ActionButton
-                          className="relative top-0 z-[10]"
-                          onClick={() => dispatch({ type: "toggle-mute" })}
-                        >
-                          {state.muted ? (
-                            <SpeakerOffIcon />
-                          ) : typeof state.volume !== "undefined" ? (
-                            state.volume < 0.2 ? (
-                              <SpeakerQuietIcon />
-                            ) : state.volume >= 0.2 && state.volume < 0.8 ? (
-                              <SpeakerModerateIcon />
-                            ) : (
-                              <SpeakerLoudIcon />
-                            )
-                          ) : undefined}
-                        </ActionButton>
-                      </HoverCardTrigger>
-                      <HoverCardContent
-                        className="w-40 p-4 z-[0] pl-12 rounded-full bg-background/50 flex items-end pointer-events-auto"
-                        side="right"
-                        align="start"
-                        alignOffset={-2}
-                        sideOffset={-46}
-                      >
-                        <Slider
-                          defaultValue={[0.8]}
-                          max={1}
-                          step={0.05}
-                          value={[state.volume || 0]}
-                          orientation="horizontal"
-                          onValueChange={(value) =>
-                            dispatch({ type: "volume", value: value[0] })
+                          title="Copy source url"
+                          onClick={() =>
+                            copyToClipboard(data.sourceUrl, "Source URL")
                           }
-                        />
-                      </HoverCardContent>
-                    </HoverCard>
-                  </div>
-                  <div>
-                    {handler.allow?.pip && (
-                      <ActionButton
-                        onClick={() => dispatch({ type: "toggle-pip" })}
-                      >
-                        {state.pip ? (
-                          <PictureInPicture2Icon />
-                        ) : (
-                          <PictureInPictureIcon />
+                        >
+                          <ClipboardCopyIcon />
+                        </ActionButton>
+                      )}
+                      {handler.allow?.refresh && (
+                        <ActionButton
+                          title="Refresh link"
+                          onClick={handleRefresh}
+                        >
+                          <ReloadIcon />
+                        </ActionButton>
+                      )}
+
+                      {handler.allow?.pip && !error && (
+                        <ActionButton
+                          title="Picture-in-picture"
+                          onClick={() => dispatch({ type: "toggle-pip" })}
+                        >
+                          {state.pip ? (
+                            <PictureInPicture2Icon />
+                          ) : (
+                            <PictureInPictureIcon />
+                          )}
+                        </ActionButton>
+                      )}
+                      {handler.allow?.maximize &&
+                        !error &&
+                        grid?.count &&
+                        grid.count > 1 && (
+                          <ActionButton
+                            title="Maximize"
+                            onClick={() =>
+                              dispatch({ type: "toggle-maximize" })
+                            }
+                          >
+                            {state.maximize ? (
+                              <ExitFullScreenIcon />
+                            ) : (
+                              <EnterFullScreenIcon />
+                            )}
+                          </ActionButton>
                         )}
-                      </ActionButton>
-                    )}
-                    {handler.allow?.fullscreen && (
-                      <ActionButton
-                        onClick={() => dispatch({ type: "toggle-fullscreen" })}
-                      >
-                        {state.fullscreen ? (
-                          <ExitFullScreenIcon />
-                        ) : (
-                          <EnterFullScreenIcon />
-                        )}
-                      </ActionButton>
-                    )}
-                  </div>
+                    </div>
+                  </ScrollArea>
                 </div>
               </>
             )}
@@ -423,32 +530,41 @@ export function ActionButton({
   className,
   children,
   onDoubleClick,
+  size,
+  title,
   ...props
 }: ButtonProps) {
   return (
-    <Button
-      className={cn(
-        "p-2 rounded-full active:bg-black/5 md:hover:bg-black/5",
-        "active:text-white md:hover:text-white ",
-        "transition-colors group/button pointer-events-auto",
-        className
-      )}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        onDoubleClick && onDoubleClick(e);
-      }}
-      variant="ghost"
-      {...props}
-    >
-      <Slot
-        className={cn(
-          "size-7",
-          "group-hover/button:scale-125 group-active/button:scale-90",
-          "transition-[transform] group-active/button:duration-75 duration-200"
-        )}
-      >
-        {children}
-      </Slot>
-    </Button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            className={cn(
+              "p-2 rounded-full active:bg-black/5 md:hover:bg-black/5",
+              "active:text-white md:hover:text-white ",
+              "transition-colors group/button pointer-events-auto",
+              className
+            )}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              onDoubleClick && onDoubleClick(e);
+            }}
+            variant="ghost"
+            {...props}
+          >
+            <Slot
+              className={cn(
+                size === "sm" ? "size-5" : "size-7",
+                "group-hover/button:scale-125 group-active/button:scale-90",
+                "transition-[transform] group-active/button:duration-75 duration-200"
+              )}
+            >
+              {children}
+            </Slot>
+          </Button>
+        </TooltipTrigger>
+        {title && <TooltipContent>{title}</TooltipContent>}
+      </Tooltip>
+    </TooltipProvider>
   );
 }

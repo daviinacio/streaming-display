@@ -52,8 +52,6 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
           Math.min(offsetWidth, offsetHeight) * (paddingPercentage / 100)
         );
 
-        // console.log({ xp, yp, y });
-
         if (
           onlyCenter ||
           (x > offsetPixels &&
@@ -124,7 +122,6 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
 
         const { x, y } = getDragXY(e);
         const position = calcDragPosition(x, y);
-        // console.log("drop1");
         onDrop && onDrop(url, position);
       }
 
@@ -167,9 +164,6 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
         e.preventDefault();
         e.stopPropagation();
         if (!e.dataTransfer) return;
-        // console.log("test", e.dataTransfer);
-        // console.log(e.dataTransfer.types);
-        // console.log(e.dataTransfer.getData("text/html"));
       }
 
       dropRef.current.addEventListener("drop", handleDrop);
@@ -209,8 +203,6 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
         >
           <div
             className={cn(
-              !(typeof disabled === "function" ? disabled() : disabled) &&
-                "transition-[padding,border-color] duration-300",
               "h-full rounded-xl",
               "border-2 border-dashed border-transparent",
               "[.drag-over_&]:text-primary",
@@ -223,8 +215,10 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
               "[.drag-pos-top_&]:border-transparent [.drag-pos-top_&]:border-t-primary",
               "[.drag-pos-bottom_&]:border-transparent [.drag-pos-bottom_&]:border-b-primary",
               "[.drag-pos-left_&]:border-transparent [.drag-pos-left_&]:border-l-primary",
-              "[.drag-pos-right_&]:border-transparent [.drag-pos-right_&]:border-r-primary"
-              // "ring-1 ring-input"
+              "[.drag-pos-right_&]:border-transparent [.drag-pos-right_&]:border-r-primary",
+              !(typeof disabled === "function" ? disabled() : disabled) && [
+                "transition-[padding,border-color] duration-300",
+              ]
             )}
             ref={ref}
           >

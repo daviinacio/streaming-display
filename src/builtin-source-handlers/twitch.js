@@ -25,9 +25,7 @@ export default {
     return $result;
   }),
   allow: {
-    fullscreen: true,
-    pip: false,
-    refresh: true,
+    maximize: true,
     volume: true
   },
 }

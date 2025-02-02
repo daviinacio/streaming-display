@@ -18,10 +18,11 @@ import type {
 } from "react-hook-form";
 
 export type PlayerAllow = {
-  fullscreen?: boolean;
+  maximize?: boolean;
   pip?: boolean;
   refresh?: boolean;
   volume?: boolean;
+  copySourceUrl?: boolean;
 };
 
 export const StreamingStatus = ["online", "offline", "away"] as const;
@@ -29,10 +30,12 @@ export type StreamingStatus = (typeof StreamingStatus)[number];
 
 export const SourceHandlerParams = `{
   url: string;
+  minimize: () => void;
 };` as const;
 
 export type SourceHandlerParams = {
   url: string;
+  minimize: () => void;
 };
 
 export const SourceHandlerResult = `{

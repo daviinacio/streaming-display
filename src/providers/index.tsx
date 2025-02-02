@@ -8,17 +8,6 @@ import { PropsWithChildren } from "react";
 import { SourceHandlerProvider } from "./source-handler-provider";
 
 export function Providers({ children }: PropsWithChildren) {
-  // useEffect(() => {
-  //   const handler = () => {
-  //     document.body.classList[document.fullscreenElement ? "add" : "remove"](
-  //       "fullscreen"
-  //     );
-  //   };
-
-  //   document.addEventListener("fullscreenchange", handler);
-  //   return () => document.removeEventListener("fullscreenchange", handler);
-  // }, []);
-
   return (
     <TempStorageProvider>
       <PreferenceProvider>
@@ -27,7 +16,7 @@ export function Providers({ children }: PropsWithChildren) {
             <AlertDialogProvider>
               <ReactQueryProvider>
                 {children}
-                <Toaster position="top-center" />
+                <Toaster position="top-right" duration={2000} />
               </ReactQueryProvider>
             </AlertDialogProvider>
           </ThemeProvider>

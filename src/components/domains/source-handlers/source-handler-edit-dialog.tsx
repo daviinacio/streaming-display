@@ -44,6 +44,13 @@ const editorTypescriptDefinition = `
 
 const defaultResolverJs = `const { url } = $params;
 
+if (condition) throw new Error([
+  "Error",
+  "Message line 1",
+  "Message line 2",
+  // ...
+].join('\\n'))
+
 $result = {
   
 };
@@ -61,10 +68,11 @@ const SourceHandlerSchema = z.object({
     requiredReturns: SourceHandlerResultRequired,
   }),
   allow: z.object({
-    fullscreen: z.boolean().default(false),
+    maximize: z.boolean().default(false),
     pip: z.boolean().default(false),
     refresh: z.boolean().default(false),
     volume: z.boolean().default(false),
+    copySourceUrl: z.boolean().default(false),
   }),
   hidden: z.boolean().default(false),
 });
@@ -75,10 +83,11 @@ const defaultValues: Partial<SourceHandlerSchema> = {
   label: "",
   id: "",
   allow: {
-    fullscreen: true,
-    pip: true,
-    refresh: true,
-    volume: true,
+    maximize: false,
+    pip: false,
+    refresh: false,
+    volume: false,
+    copySourceUrl: false,
   },
 };
 
@@ -165,7 +174,9 @@ export function SourceHandlerEditDialog({
       sh.save(data.id, sourceHandlerSchemaToJavascript(data));
       onOpenChange && onOpenChange(false);
 
-      toast.success("Source handler successfully saved");
+      toast.success("Source handler successfully saved", {
+        duration: 2000,
+      });
     },
     [sh, id]
   );
@@ -298,8 +309,16 @@ export function SourceHandlerEditDialog({
                   <FormField
                     control={form.control}
                     className="flex-none"
-                    name="allow.fullscreen"
-                    label="Fullscreen"
+                    name="allow.maximize"
+                    label="Maximize"
+                  >
+                    <Checkbox />
+                  </FormField>
+                  <FormField
+                    control={form.control}
+                    className="flex-none"
+                    name="allow.copySourceUrl"
+                    label="Copy SourceUrl"
                   >
                     <Checkbox />
                   </FormField>

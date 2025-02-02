@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { HTMLAttributes } from "react";
 import { SourceHandlerListDialog } from "../domains/source-handlers/source-handler-list-dialog";
-import { Button } from "../ui";
+import { Button, ButtonProps } from "../ui";
 import { usePreference } from "@/hooks/use-preference";
 
 export type AppHeaderProps = HTMLAttributes<HTMLHeadElement>;
@@ -37,19 +37,15 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
       >
         <div className="flex items-center gap-4">
           <Logo />
-
-          <div className="hidden md:flex items-center gap-2">
-            <Button variant="link" className="font-semibold text-white">
-              <a
-                className="flex items-center gap-1"
-                href="https://streaming-display-v1.onrender.com/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open v1
-                <ExternalLinkIcon className="w-4 h-4" />
-              </a>
-            </Button>
+          <div className="hidden md:flex items-center gap-4">
+            <HeaderLink to="https://streaming-display-v1.onrender.com/">
+              Open v1
+              <ExternalLinkIcon className="w-4 h-4" />
+            </HeaderLink>
+            <HeaderLink to="https://github.com/daviinacio/streaming-display">
+              Github
+              <ExternalLinkIcon className="w-4 h-4" />
+            </HeaderLink>
           </div>
         </div>
         <div className="flex items-center sm:gap-1">
@@ -78,5 +74,29 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
         </div>
       </div>
     </header>
+  );
+}
+
+export function HeaderLink({
+  children,
+  className,
+  to,
+  ...props
+}: ButtonProps & { to: string }) {
+  return (
+    <Button
+      variant="link"
+      className={cn("font-semibold text-white p-0", className)}
+      {...props}
+    >
+      <a
+        className="flex items-center gap-1"
+        href={to}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {children}
+      </a>
+    </Button>
   );
 }

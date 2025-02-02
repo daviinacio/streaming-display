@@ -11,16 +11,19 @@ import {
 export type GridItemProps = HTMLAttributes<HTMLDivElement> & {
   item: GridItemType;
   position?: GridItemPosition;
-  isFullscreen?: boolean;
+  isMaximized?: boolean;
+  grid?: {
+    count: number;
+  };
 };
 
 export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
-  ({ children, className, position, isFullscreen, ...props }, ref) => {
+  ({ children, className, position, isMaximized, ...props }, ref) => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     useImperativeHandle(ref, () => playerWrapperRef.current!, []);
 
     const gridPosition = useMemo((): GridItemPosition | undefined => {
-      if (isFullscreen) {
+      if (isMaximized) {
         return {
           height: 100,
           width: 100,
@@ -29,7 +32,7 @@ export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
         };
       }
       return position;
-    }, [position, isFullscreen]);
+    }, [position, isMaximized]);
 
     return (
       <div

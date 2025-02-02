@@ -60,6 +60,9 @@ export function Grid({ children, className, ...props }: GridProps) {
         {Children.map(children, (child) => {
           return cloneElement(child, {
             ...child.props,
+            grid: {
+              count: Children.count(children),
+            },
             position: positions.find((it) => it.url === child.props.item.url),
           } as GridItemProps);
         })}

@@ -4,11 +4,11 @@ type VideoPlayerState = Pick<
   BaseReactPlayerProps,
   "pip" | "playing" | "light" | "loop" | "playbackRate" | "volume" | "muted"
 > & {
-  fullscreen?: boolean;
+  maximize?: boolean;
 };
 
 type VideoPlayerAction =
-  | { type: "pip" | "fullscreen"; value: boolean }
+  | { type: "pip" | "maximize"; value: boolean }
   | { type: "progress"; value: number }
   | {
       type:
@@ -17,7 +17,7 @@ type VideoPlayerAction =
         | "toggle-play"
         | "toggle-mute"
         | "toggle-pip"
-        | "toggle-fullscreen";
+        | "toggle-maximize";
     }
   | { type: "volume"; value: number };
 
@@ -41,14 +41,14 @@ export function videoPlayerReducer(
     case "toggle-pip":
       return { ...state, pip: !state.pip };
 
-    case "toggle-fullscreen":
-      return { ...state, fullscreen: !state.fullscreen };
+    case "toggle-maximize":
+      return { ...state, maximize: !state.maximize };
 
     case "pip":
       return { ...state, pip: action.value };
 
-    case "fullscreen":
-      return { ...state, fullscreen: action.value };
+    case "maximize":
+      return { ...state, maximize: action.value };
 
     case "volume":
       return { ...state, volume: action.value };
