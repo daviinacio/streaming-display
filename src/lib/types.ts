@@ -37,17 +37,15 @@ export type SourceHandlerParams = {
 
 export const SourceHandlerResult = `{
   title: string;
-  status: ${StreamingStatus.map((s) => `'${s}'`).join(" | ")};
   sourceUrl: string;
 };` as const;
 
 export type SourceHandlerResult = {
   title: string;
-  status: StreamingStatus;
   sourceUrl: string;
 };
 
-export const SourceHandlerResultRequired = ["title", "status", "sourceUrl"];
+export const SourceHandlerResultRequired = ["title", "sourceUrl"];
 
 export type SourceHandler = {
   id: string;

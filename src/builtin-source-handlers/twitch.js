@@ -7,7 +7,7 @@ export default {
   urlMatch: [
     'https://www.twitch.tv/*',
   ],
-  resolver: async ($params = {}) => {
+  resolver: ($params = {}) => new Promise(($resolve, $reject) => {
     let $result = {};
     //###---OPEN---###//
     const { url } = $params;
@@ -21,8 +21,9 @@ export default {
     }
 
     //###---CLOSE---###//
+    $resolve($result)
     return $result;
-  },
+  }),
   allow: {
     fullscreen: true,
     pip: false,

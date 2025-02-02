@@ -223,7 +223,7 @@ export function SourceHandlerList({
             </TableCell>
 
             {onEdit && (
-              <TableCell className="w-0 p-1">
+              <TableCell className="w-[1px] p-1">
                 <TableCellActionButton
                   title="Edit"
                   onClick={() => onEdit && onEdit(handler.id)}
@@ -234,7 +234,7 @@ export function SourceHandlerList({
             )}
 
             {onExport && (
-              <TableCell className="w-0 p-1">
+              <TableCell className="w-[1px] p-1">
                 <TableCellActionButton
                   title="Export"
                   onClick={() => onExport && onExport(handler.id)}
@@ -245,7 +245,7 @@ export function SourceHandlerList({
             )}
 
             {onDelete && (
-              <TableCell className="w-0 p-1">
+              <TableCell className="w-[1px] p-1">
                 <TableCellActionButton
                   title="Delete"
                   onClick={() => onDelete && onDelete(handler.id)}

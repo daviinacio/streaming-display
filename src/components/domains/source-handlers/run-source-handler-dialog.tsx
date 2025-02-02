@@ -84,10 +84,13 @@ export function RunSourceHandlerDialog({
         return result;
       } catch (err) {
         if (err instanceof Error) {
-          form.setError("url", {
-            message: err.message,
-          });
+          form.setValue("result", `[ERROR]: ${err.message}`);
         }
+        // if (err instanceof Error) {
+        //   form.setError("url", {
+        //     message: err.message,
+        //   });
+        // }
       }
       return null;
     },

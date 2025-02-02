@@ -53,12 +53,8 @@ const SourceHandlerSchema = z.object({
   id: z.string().min(3, "Minimum of 3 characters"),
   label: z.string().min(3, "Minimum of 3 characters"),
   version: z.string().optional().default("1.0.0"), // TODO implement a version Input and Schema
-  logo: z
-    .object({
-      url: z.string().url(),
-      height: z.string().optional(),
-    })
-    .optional(),
+  logo: z.string().url().optional(),
+  icon: z.string().url().optional(),
   urlMatch: z.array(z.string()).min(1, "Required"),
   resolver: JavascriptSchema({
     transform: wrapSourceHandlerResolverJavascript,

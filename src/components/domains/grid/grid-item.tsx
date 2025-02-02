@@ -1,118 +1,50 @@
 import { GridItemPosition, GridItem as GridItemType } from "@/lib/types";
-import { cn, exclude } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   forwardRef,
   HTMLAttributes,
-  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
 } from "react";
 
-const animationAttributes = [
-  "gridColumnEnd",
-  "gridColumnStart",
-  "gridRowEnd",
-  "gridRowStart",
-] as const;
-
-const animationSpeed = 15;
-const animationTick = 1;
-
 export type GridItemProps = HTMLAttributes<HTMLDivElement> & {
   item: GridItemType;
   position?: GridItemPosition;
   isFullscreen?: boolean;
-  grid?: {
-    columns: number;
-    rows: number;
-  };
 };
 
 export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
-  ({ children, className, grid, position, isFullscreen, ...props }, ref) => {
-    grid = grid || { columns: 1, rows: 1 };
+  ({ children, className, position, isFullscreen, ...props }, ref) => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     useImperativeHandle(ref, () => playerWrapperRef.current!, []);
 
-    const fullscreenPosition = useMemo(
-      () => ({
-        gridColumnEnd: grid.columns,
-        gridColumnStart: 1,
-        gridRowEnd: grid.rows,
-        gridRowStart: 1,
-        zIndex: 10,
-      }),
-      [grid.columns, grid.rows]
-    );
-
-    useEffect(() => {
-      if (!playerWrapperRef.current || !position) return;
-      const newState = isFullscreen
-        ? fullscreenPosition
-        : {
-            gridColumnEnd: Math.max(
-              (position.x || 0) + (position.width || 0),
-              1
-            ),
-            gridColumnStart: Math.max(position.x || 0, 1),
-            gridRowEnd: Math.max((position.y || 0) + (position.height || 0), 1),
-            gridRowStart: Math.max(position.y || 0, 1),
-            zIndex: 1,
-          };
-
-      (
-        Object.keys(exclude(newState, ...animationAttributes)) as Array<never>
-      ).forEach((att) => {
-        if (!playerWrapperRef.current) return;
-        playerWrapperRef.current.style[att] = String(newState[att] || "");
-      });
-
-      const currState = animationAttributes.reduce((acc, att) => {
-        if (!playerWrapperRef.current) return acc;
-        acc[att] =
-          parseInt(playerWrapperRef.current.style[att]) || newState[att];
-        return acc;
-      }, {} as { [key in (typeof animationAttributes)[number]]: number });
-
-      function calcOffset(start: number, end: number) {
-        return Math.max(
-          Math.abs(Math.trunc(Math.abs(start - end) / animationSpeed)),
-          1
-        );
+    const gridPosition = useMemo((): GridItemPosition | undefined => {
+      if (isFullscreen) {
+        return {
+          height: 100,
+          width: 100,
+          x: 0,
+          y: 0,
+        };
       }
-
-      const interval = setInterval(() => {
-        if (!playerWrapperRef.current) return;
-
-        animationAttributes.forEach((att) => {
-          if (!playerWrapperRef.current) return;
-          const start = currState[att];
-          const end = newState[att];
-          const offset = calcOffset(start, end);
-
-          if (end > start) currState[att] += offset;
-          else if (end < start) currState[att] -= offset;
-
-          playerWrapperRef.current.style[att] = String(currState[att]);
-        });
-
-        if (
-          animationAttributes.every((att) => currState[att] === newState[att])
-        ) {
-          clearInterval(interval);
-          // console.log("animation finished");
-        }
-      }, animationTick);
-
-      return () => clearInterval(interval);
-    }, [playerWrapperRef, isFullscreen, position]);
+      return position;
+    }, [position, isFullscreen]);
 
     return (
       <div
-        {...props}
-        className={cn("overflow-hidden", className)}
+        role="grid-item"
+        className={cn(
+          "absolute transition-[width,height,top,left] duration-300",
+          className
+        )}
         ref={playerWrapperRef}
+        style={{
+          width: `${gridPosition?.width}%`,
+          height: `${gridPosition?.height}%`,
+          top: `${gridPosition?.y}%`,
+          left: `${gridPosition?.x}%`,
+        }}
         {...props}
       >
         {children}

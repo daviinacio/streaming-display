@@ -8,7 +8,7 @@ import {
 } from "@/components/ui";
 import { usePreference } from "@/hooks/use-preference";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
-import { cn } from "@/lib/utils";
+import { cn, exclude } from "@/lib/utils";
 import {
   EnterFullScreenIcon,
   ExitFullScreenIcon,
@@ -38,6 +38,9 @@ import ReactPlayer from "react-player";
 import FadeLoader from "react-spinners/FadeLoader";
 import { GridItem, GridItemProps } from "../grid/grid-item";
 import { videoPlayerReducer } from "./video-player-reducer";
+import { DropArea, DropLocation } from "@/components/drag-n-drop/drop-area";
+
+const runtimeState = ["fullscreen", "playing"] as const;
 
 const inactivityTimeout = 2500;
 const activityEvents = [
@@ -47,13 +50,23 @@ const activityEvents = [
   "mouseup",
 ] as const;
 
-type VideoPlayerProps = GridItemProps;
+type VideoPlayerProps = Omit<GridItemProps, "onDrop"> & {
+  onDrop?: (content: string, location: DropLocation, url: string) => void;
+  onRemove?: (url: string) => void;
+};
 
-export function VideoPlayer({ item, className, ...props }: VideoPlayerProps) {
+export function VideoPlayer({
+  item,
+  className,
+  onDrop,
+  onRemove,
+  ...props
+}: VideoPlayerProps) {
   const sh = useSourceHandlers();
   const handler = useMemo(() => sh.findHandler(item.url), [sh, item.url]);
   const preferences = usePreference();
 
+  const gridItemRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fit = preferences.getItem("fit-video");
 
@@ -70,7 +83,7 @@ export function VideoPlayer({ item, className, ...props }: VideoPlayerProps) {
 
   useEffect(() => {
     const playerPref = preferences.getItem("player-preferences");
-    playerPref[item.url] = state;
+    playerPref[item.url] = exclude(state, ...runtimeState);
     preferences.setItem("player-preferences", playerPref);
   }, [state]);
 
@@ -84,9 +97,10 @@ export function VideoPlayer({ item, className, ...props }: VideoPlayerProps) {
     dispatch({ type: "fullscreen", value: false });
   }, [handler?.allow?.fullscreen]);
 
-  const { data, refetch } = useQuery({
+  const { data, error, refetch } = useQuery({
     queryKey: ["handler", handler?.id, item.url],
     queryFn: () => handler && handler.resolver(item),
+    staleTime: 60 * 1000,
   });
 
   const handleError = useCallback(
@@ -98,7 +112,7 @@ export function VideoPlayer({ item, className, ...props }: VideoPlayerProps) {
   );
 
   useEffect(() => {
-    if (!wrapperRef.current) return;
+    if (!wrapperRef.current || !gridItemRef.current) return;
     const iframe = wrapperRef.current.querySelector("iframe");
     if (!iframe) return;
 
@@ -117,23 +131,22 @@ export function VideoPlayer({ item, className, ...props }: VideoPlayerProps) {
     }
 
     function delayedUpdateIframeHeight() {
-      for (let i = 1; i < 3; i++) {
-        setTimeout(updateIframeHeight, Math.pow(100, i));
+      for (let i = 1; i < 20; i++) {
+        setTimeout(() => fit && updateIframeHeight(), 20 * i);
       }
     }
 
     updateIframeHeight();
+    delayedUpdateIframeHeight();
 
     const observer = new MutationObserver(() => {
       updateIframeHeight();
     });
 
-    if (wrapperRef.current.parentElement) {
-      observer.observe(wrapperRef.current.parentElement, {
-        attributes: true,
-        attributeFilter: ["style"],
-      });
-    }
+    observer.observe(gridItemRef.current, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
 
     document.documentElement.addEventListener(
       "fullscreenchange",
@@ -149,12 +162,13 @@ export function VideoPlayer({ item, className, ...props }: VideoPlayerProps) {
       );
       observer.disconnect();
     };
-  }, [fit, wrapperRef, state.playing]);
+  }, [fit, wrapperRef, gridItemRef.current, state.playing, state.fullscreen]);
 
   useEffect(() => {
     if (!wrapperRef.current) return;
     let timeout: NodeJS.Timeout | null = null;
     function activity(e: Event) {
+      // console.log(e);
       if (timeout) {
         clearTimeout(timeout);
         timeout = null;
@@ -176,200 +190,230 @@ export function VideoPlayer({ item, className, ...props }: VideoPlayerProps) {
     };
   }, [wrapperRef.current]);
 
-  if (!data || !handler) return <p className="bg-cyan-500">Loading...</p>;
-  if (!data.sourceUrl) return <p className="bg-cyan-500">Offline</p>;
+  // if (!data || !handler) return <p className="bg-cyan-500">Loading...</p>;
+  // if (!data.sourceUrl) return <p className="bg-cyan-500">Offline</p>;
 
   return (
     <GridItem
       item={item}
-      className={cn(
-        "p-1 transition-[opacity] duration-500 ease-in delay-300",
-        state.fullscreen &&
-          "[.grid:has(&)>div]:opacity-0 [.grid:has(&)>div]:delay-0 [.grid:has(&)>div]:ease-out !opacity-100",
-        className
-      )}
+      className={cn(className)}
       isFullscreen={state.fullscreen}
       onDoubleClick={() => dispatch({ type: "toggle-fullscreen" })}
+      ref={gridItemRef}
       {...props}
     >
       <div
         className={cn(
-          "h-full w-full ring-1 ring-input rounded-lg overflow-hidden",
-          "bg-black text-white relative group/player z-[4] transition-all duration-300",
-          !isInactive && "hover:ring-primary hover:ring-2",
-          isInactive && "cursor-none"
+          "h-full",
+          "duration-500 ease-in delay-100",
+          state.fullscreen &&
+            "[[role=grid]:has(&)_[role=grid-item]>div]:opacity-0 [[role=grid]:has(&)_[role=grid-item]>div]:delay-0 [[role=grid]:has(&)_[role=grid-item]>div]:ease-out !opacity-100"
         )}
-        ref={wrapperRef}
       >
-        <div
-          key="player"
-          className={cn(
-            "h-full w-full pointer-events-none relative",
-            state.pip && "hidden",
-            fit && "[&_video]:object-cover",
-            "[&_iframe]:absolute",
-            "[&_iframe]:top-[50%]",
-            "[&_iframe]:translate-x-[-50%]",
-            "[&_iframe]:translate-y-[-50%]",
-            "[&_iframe]:left-[50%]",
-            "[&_iframe]:object-cover"
-          )}
+        <DropArea
+          className={cn("pointer-events-auto  overflow-hidden p-0")}
+          onDrop={(url, location) => onDrop && onDrop(url, location, item.url)}
+          disabled={state.fullscreen}
+          //disabled={(url) => url === item.url}
         >
           <div
-            key="spinner"
-            className="absolute inset-0 flex items-center justify-center"
-          >
-            <FadeLoader color="white" />
-          </div>
-          <ReactPlayer
-            key="react-player"
-            url={data.sourceUrl}
-            playing={true}
-            className={cn("h-full w-full pointer-events-none relative")}
-            width="100%"
-            height="100%"
-            onStart={() => dispatch({ type: "play" })}
-            onPause={() => dispatch({ type: "pause" })}
-            onPlay={() => dispatch({ type: "play" })}
-            onEnablePIP={() => dispatch({ type: "pip", value: true })}
-            onDisablePIP={() => dispatch({ type: "pip", value: false })}
-            onEnded={handleError}
-            onError={handleError}
-            controls={false}
-            config={{
-              youtube: {
-                playerVars: { showinfo: 1 },
-              },
-            }}
-            {...state}
-          />
-        </div>
-
-        {handler.logo && (
-          <img
-            src={handler.logo}
-            className="absolute top-4 right-4 bg-cover h-[32px] max-h-[10%] pointer-events-none"
-          />
-        )}
-
-        {state.pip && (
-          <div
-            key="pip"
             className={cn(
-              "absolute inset-0 text-2xl text-muted-foreground",
-              "flex flex-col items-center justify-center"
+              "h-full w-full ",
+              "bg-black text-white relative group/player z-[4] rounded-lg overflow-hidden",
+              "ring-1 ring-input transition-all duration-300",
+              !isInactive && "hover:ring-primary hover:ring-2",
+              isInactive && "cursor-none"
             )}
+            ref={wrapperRef}
           >
-            <PictureInPictureIcon className="size-16" />
-            Picture-in-picture
-          </div>
-        )}
+            {handler && (
+              <>
+                {data && data.sourceUrl && (
+                  <div
+                    key="player"
+                    className={cn(
+                      "h-full w-full pointer-events-none relative rounded-md overflow-hidden",
+                      state.pip && "hidden",
+                      fit && "[&_video]:object-cover",
+                      "[&_iframe]:absolute",
+                      "[&_iframe]:top-[50%]",
+                      "[&_iframe]:translate-x-[-50%]",
+                      "[&_iframe]:translate-y-[-50%]",
+                      "[&_iframe]:left-[50%]",
+                      "[&_iframe]:object-cover",
+                      "text-white"
+                    )}
+                  >
+                    <div
+                      key="spinner"
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <FadeLoader color="white" />
+                    </div>
+                    <ReactPlayer
+                      key="react-player"
+                      url={data.sourceUrl}
+                      playing={true}
+                      className={cn(
+                        "h-full w-full pointer-events-none relative"
+                      )}
+                      width="100%"
+                      height="100%"
+                      onStart={() => dispatch({ type: "play" })}
+                      onPause={() => dispatch({ type: "pause" })}
+                      onPlay={() => dispatch({ type: "play" })}
+                      onEnablePIP={() => dispatch({ type: "pip", value: true })}
+                      onDisablePIP={() =>
+                        dispatch({ type: "pip", value: false })
+                      }
+                      onEnded={handleError}
+                      onError={handleError}
+                      controls={false}
+                      config={{
+                        youtube: {
+                          playerVars: { showinfo: 1 },
+                        },
+                      }}
+                      {...state}
+                    />
+                  </div>
+                )}
 
-        <div
-          key="header"
-          className={cn(
-            "absolute top-0 left-0 right-0",
-            "flex items-center justify-between",
-            "p-1 pl-3 transition-[opacity] duration-300",
-            "opacity-0",
-            !isInactive && "group-hover/player:opacity-100",
-            "bg-gradient-to-b from-black/80 pointer-events-none"
-          )}
-        >
-          <div className="max-w-[50%] pointer-events-auto">
-            <p
-              className={cn(
-                "text-2xl font-semibold truncate",
-                "drop-shadow-text",
-                ""
-              )}
-            >
-              {data.title}
-            </p>
-          </div>
-          <ActionButton>
-            <XIcon />
-          </ActionButton>
-        </div>
+                {handler.logo && (
+                  <img
+                    src={handler.logo}
+                    className="absolute top-4 right-4 bg-cover h-[32px] max-h-[10%] pointer-events-none"
+                  />
+                )}
 
-        <div
-          key="controls"
-          className={cn(
-            "absolute bottom-0 left-0 right-0",
-            "flex items-center justify-between",
-            "p-1 transition-[opacity] duration-300",
-            "opacity-0",
-            !isInactive && "group-hover/player:opacity-100",
-            "bg-gradient-to-t from-black/80 pointer-events-auto"
-          )}
-        >
-          <div className="flex items-center">
-            <ActionButton onClick={() => dispatch({ type: "toggle-play" })}>
-              {state.playing ? <PauseIcon /> : <PlayIcon />}
-            </ActionButton>
+                {state.pip && (
+                  <div
+                    key="pip"
+                    className={cn(
+                      "absolute inset-0 text-2xl text-muted-foreground",
+                      "flex flex-col items-center justify-center"
+                    )}
+                  >
+                    <PictureInPictureIcon className="size-16" />
+                    Picture-in-picture
+                  </div>
+                )}
 
-            <HoverCard open={state.muted ? false : undefined}>
-              <HoverCardTrigger>
-                <ActionButton
-                  className="relative top-0 z-[10]"
-                  onClick={() => dispatch({ type: "toggle-mute" })}
+                <div
+                  key="header"
+                  className={cn(
+                    "absolute top-0 left-0 right-0",
+                    "flex items-center justify-between",
+                    "p-1 pl-3 transition-[opacity] duration-300",
+                    "opacity-0",
+                    !isInactive && "group-hover/player:opacity-100",
+                    "bg-gradient-to-b from-black/80 pointer-events-none"
+                  )}
                 >
-                  {state.muted ? (
-                    <SpeakerOffIcon />
-                  ) : typeof state.volume !== "undefined" ? (
-                    state.volume < 0.2 ? (
-                      <SpeakerQuietIcon />
-                    ) : state.volume >= 0.2 && state.volume < 0.8 ? (
-                      <SpeakerModerateIcon />
-                    ) : (
-                      <SpeakerLoudIcon />
-                    )
-                  ) : undefined}
-                </ActionButton>
-              </HoverCardTrigger>
-              <HoverCardContent
-                className="w-40 p-4 z-[0] pl-12 rounded-full bg-background/50 flex items-end pointer-events-auto"
-                side="right"
-                align="start"
-                alignOffset={-2}
-                sideOffset={-46}
-              >
-                <Slider
-                  defaultValue={[0.8]}
-                  max={1}
-                  step={0.05}
-                  value={[state.volume || 0]}
-                  orientation="horizontal"
-                  onValueChange={(value) =>
-                    dispatch({ type: "volume", value: value[0] })
-                  }
-                />
-              </HoverCardContent>
-            </HoverCard>
-          </div>
-          <div>
-            {handler.allow?.pip && (
-              <ActionButton onClick={() => dispatch({ type: "toggle-pip" })}>
-                {state.pip ? (
-                  <PictureInPicture2Icon />
-                ) : (
-                  <PictureInPictureIcon />
-                )}
-              </ActionButton>
+                  <div className="max-w-[50%] pointer-events-auto">
+                    <p
+                      className={cn(
+                        "text-2xl font-semibold truncate",
+                        "drop-shadow-text",
+                        ""
+                      )}
+                    >
+                      {data?.title}
+                    </p>
+                  </div>
+                  <ActionButton onClick={() => onRemove && onRemove(item.url)}>
+                    <XIcon />
+                  </ActionButton>
+                </div>
+
+                <div
+                  key="controls"
+                  className={cn(
+                    "absolute bottom-0 left-0 right-0",
+                    "flex items-center justify-between",
+                    "p-1 transition-[opacity] duration-300",
+                    "opacity-0",
+                    !isInactive && "group-hover/player:opacity-100",
+                    "bg-gradient-to-t from-black/80 ",
+                    // "!pointer-events-none",
+                    (error || !data) && "hidden"
+                  )}
+                >
+                  <div className="flex items-center">
+                    <ActionButton
+                      onClick={() => dispatch({ type: "toggle-play" })}
+                    >
+                      {state.playing ? <PauseIcon /> : <PlayIcon />}
+                    </ActionButton>
+
+                    <HoverCard open={state.muted ? false : undefined}>
+                      <HoverCardTrigger>
+                        <ActionButton
+                          className="relative top-0 z-[10]"
+                          onClick={() => dispatch({ type: "toggle-mute" })}
+                        >
+                          {state.muted ? (
+                            <SpeakerOffIcon />
+                          ) : typeof state.volume !== "undefined" ? (
+                            state.volume < 0.2 ? (
+                              <SpeakerQuietIcon />
+                            ) : state.volume >= 0.2 && state.volume < 0.8 ? (
+                              <SpeakerModerateIcon />
+                            ) : (
+                              <SpeakerLoudIcon />
+                            )
+                          ) : undefined}
+                        </ActionButton>
+                      </HoverCardTrigger>
+                      <HoverCardContent
+                        className="w-40 p-4 z-[0] pl-12 rounded-full bg-background/50 flex items-end pointer-events-auto"
+                        side="right"
+                        align="start"
+                        alignOffset={-2}
+                        sideOffset={-46}
+                      >
+                        <Slider
+                          defaultValue={[0.8]}
+                          max={1}
+                          step={0.05}
+                          value={[state.volume || 0]}
+                          orientation="horizontal"
+                          onValueChange={(value) =>
+                            dispatch({ type: "volume", value: value[0] })
+                          }
+                        />
+                      </HoverCardContent>
+                    </HoverCard>
+                  </div>
+                  <div>
+                    {handler.allow?.pip && (
+                      <ActionButton
+                        onClick={() => dispatch({ type: "toggle-pip" })}
+                      >
+                        {state.pip ? (
+                          <PictureInPicture2Icon />
+                        ) : (
+                          <PictureInPictureIcon />
+                        )}
+                      </ActionButton>
+                    )}
+                    {handler.allow?.fullscreen && (
+                      <ActionButton
+                        onClick={() => dispatch({ type: "toggle-fullscreen" })}
+                      >
+                        {state.fullscreen ? (
+                          <ExitFullScreenIcon />
+                        ) : (
+                          <EnterFullScreenIcon />
+                        )}
+                      </ActionButton>
+                    )}
+                  </div>
+                </div>
+              </>
             )}
-            {handler.allow?.fullscreen && (
-              <ActionButton
-                onClick={() => dispatch({ type: "toggle-fullscreen" })}
-              >
-                {state.fullscreen ? (
-                  <ExitFullScreenIcon />
-                ) : (
-                  <EnterFullScreenIcon />
-                )}
-              </ActionButton>
-            )}
           </div>
-        </div>
+        </DropArea>
       </div>
     </GridItem>
   );
