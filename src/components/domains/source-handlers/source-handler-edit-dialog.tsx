@@ -29,7 +29,7 @@ import { PropsWithChildren, useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { RunSourceHandlerDialog } from "./run-source-handler-dialog";
+import { RunSourceHandlerDialog } from "./source-handler-run-dialog";
 
 const resolverOpening = "//###---OPEN---###//";
 const resolverClosing = "//###---CLOSE---###//";

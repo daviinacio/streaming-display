@@ -1,6 +1,7 @@
 import { TextareaProps } from "@/components/ui";
+import { usePreference } from "@/hooks/use-preference";
 import { useTheme } from "@/hooks/use-theme";
-import { cn } from "@/lib/utils";
+import { cn, hslToHex } from "@/lib/utils";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import { useEffect } from "react";
 
@@ -20,6 +21,9 @@ export function CodeEditor({
 }: CodeEditorProps) {
   const theme = useTheme();
   const monaco = useMonaco();
+  const preferences = usePreference();
+  const currentColorPrimary = preferences.getItem("color-primary");
+  const currentColorPrimaryHex = hslToHex(currentColorPrimary);
 
   useEffect(() => {
     if (!monaco) return;
@@ -29,9 +33,9 @@ export function CodeEditor({
       rules: [],
       colors: {
         "editor.background": "#09090b",
-        "editor.selectionBackground": "#1eb85750",
-        "editor.selectionHighlight": "#1eb857",
-        // "editor.lineHighlightBackground": "#1eb857",
+        "editor.selectionBackground": `${currentColorPrimaryHex}50`,
+        "editor.selectionHighlight": "currentColorPrimaryHex",
+        // "editor.lineHighlightBackground": "currentColorPrimaryHex",
       },
     });
 

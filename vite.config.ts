@@ -17,7 +17,7 @@ export default defineConfig({
     ViteEjsPlugin({
       year: new Date().getFullYear(),
       version: String(`v${pkg.version}`).padStart(9, " "),
-      title: "Streaming Display v2",
+      title: "Streaming Display",
     }),
   ],
   resolve: {

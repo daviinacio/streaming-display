@@ -13,6 +13,7 @@ export type Preferences = {
   ["player-preferences"]: {
     [key: string]: any;
   };
+  "color-primary": string;
 };
 
 const defaultPreferences: Preferences = {
@@ -20,6 +21,7 @@ const defaultPreferences: Preferences = {
   locale: "system",
   ["fit-video"]: false,
   ["player-preferences"]: {},
+  "color-primary": "206 100% 57%",
 };
 
 const storageKey = "preferences";

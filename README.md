@@ -1,4 +1,4 @@
-<a style="color:#1eb857" id="readme-top"></a>
+<a id="readme-top"></a>
 
 [contributors-shield]: https://img.shields.io/github/contributors/daviinacio/streaming-display.svg?style=for-the-badge
 [contributors-url]: https://github.com/daviinacio/streaming-display/graphs/contributors
@@ -20,7 +20,7 @@
 
 <br />
 <div align="center">
-  <a style="color:#1eb857" href="https://github.com/daviinacio/streaming-display">
+  <a href="https://github.com/daviinacio/streaming-display">
     <img src="doc/logo.svg" alt="Logo" width="80" height="80">
   </a>
 
@@ -30,14 +30,14 @@
     
 Centralize all live streamings in one place.
     <br />
-    <a style="color:#1eb857" href="https://github.com/daviinacio/streaming-display"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/daviinacio/streaming-display"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a style="color:#1eb857" href="https://streaming-display.onrender.com/">View Demo</a>
+    <a href="https://streaming-display.onrender.com/">View Demo</a>
     &middot;
-    <a style="color:#1eb857" href="https://github.com/daviinacio/streaming-display/issues/new?labels=bug&template=Blank+issue">Report Bug</a>
+    <a href="https://github.com/daviinacio/streaming-display/issues/new?labels=bug&template=Blank+issue">Report Bug</a>
     &middot;
-    <a style="color:#1eb857" href="https://github.com/daviinacio/streaming-display/issues/new?labels=enhancement">Request Feature</a>
+    <a href="https://github.com/daviinacio/streaming-display/issues/new?labels=enhancement">Request Feature</a>
   </p>
 </div>
 
@@ -78,8 +78,8 @@ Centralize all live streamings in one place.
 
 ### Top contributors:
 
-<a style="color:#1eb857" href="https://github.com/daviinacio/streaming-display/graphs/contributors">
+<a href="https://github.com/daviinacio/streaming-display/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=daviinacio/streaming-display" alt="contrib.rocks image" />
 </a>
 
-<p align="right">(<a style="color:#1eb857" href="#readme-top">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p>

@@ -9,12 +9,14 @@ import {
   ExpandIcon,
   ExternalLinkIcon,
   FileCogIcon,
+  PaletteIcon,
   ShrinkIcon,
 } from "lucide-react";
 import { HTMLAttributes } from "react";
 import { SourceHandlerListDialog } from "../domains/source-handlers/source-handler-list-dialog";
 import { Button, ButtonProps } from "../ui";
 import { usePreference } from "@/hooks/use-preference";
+import { ThemeDialog } from "../domains/customize/theme-dialog";
 
 export type AppHeaderProps = HTMLAttributes<HTMLHeadElement>;
 
@@ -68,6 +70,14 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
               </HeaderButton>
             </span>
           </SourceHandlerListDialog>
+
+          <ThemeDialog>
+            <span>
+              <HeaderButton title="Customize">
+                <PaletteIcon />
+              </HeaderButton>
+            </span>
+          </ThemeDialog>
 
           <ThemeButton title="Theme" />
           <FullscreenButton title="Fullscreen" />
