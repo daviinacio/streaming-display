@@ -35,9 +35,9 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
           "pl-4 pr-2"
         )}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Logo />
-          <div className="hidden md:flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <HeaderLink to="https://streaming-display-v1.onrender.com/">
               Open v1
               <ExternalLinkIcon className="w-4 h-4" />
@@ -90,7 +90,7 @@ export function HeaderLink({
       {...props}
     >
       <a
-        className="flex items-center gap-1"
+        className="flex items-center gap-1 text-xs sm:text-base"
         href={to}
         target="_blank"
         rel="noreferrer"
