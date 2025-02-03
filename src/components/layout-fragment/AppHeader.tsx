@@ -100,7 +100,7 @@ export function HeaderLink({
       {...props}
     >
       <a
-        className="flex items-center gap-1 text-xs sm:text-base"
+        className="flex items-center gap-1 text-xs"
         href={to}
         target="_blank"
         rel="noreferrer"

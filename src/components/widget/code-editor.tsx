@@ -34,6 +34,7 @@ export function CodeEditor({
       colors: {
         "editor.selectionBackground": `${currentColorPrimaryHex}50`,
         "editor.selectionHighlight": currentColorPrimaryHex,
+        "editor.background": "#09090b",
       },
     });
 

@@ -240,7 +240,10 @@ export function VideoPlayer({
 
   const handleRefresh = useCallback(
     async (err?: any, err2?: any) => {
-      if (err === "force" || (err === "hlsError" && !error)) {
+      if (
+        err === "force" ||
+        (err === "hlsError" && !fetchError && !isFetching)
+      ) {
         console.debug("Refetching", err, err2, item.url);
         await refetch();
       } else {
@@ -249,7 +252,7 @@ export function VideoPlayer({
 
       dispatch({ type: "play" });
     },
-    [refetch, error]
+    [refetch, fetchError, isFetching]
   );
 
   useEffect(() => {
