@@ -62,6 +62,7 @@ export function ThemeDialog({ children, ...props }: ThemeDialogProps) {
         <div className="grid grid-cols-4 gap-4">
           {Object.entries(colorList).map(([name, color]) => (
             <Button
+              key={name}
               title={name}
               variant="ghost"
               className="size-12 p-0 rounded-full hover:scale-110 active:scale-90 transition-[transform]"

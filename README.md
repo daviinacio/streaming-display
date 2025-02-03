@@ -56,6 +56,7 @@ Centralize all live streamings in one place.
 - Dark theme
   - Follows the system theme changing if it matches with the current system color schema.
 - Fully responsible
+- Customize color palette
 
 ### Screenshots
 

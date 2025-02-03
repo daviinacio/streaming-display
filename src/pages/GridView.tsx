@@ -1,6 +1,9 @@
+import {
+  DropArea,
+  DropLocation,
+} from "@/components/domains/drag-n-drop/drop-area";
 import { Grid } from "@/components/domains/grid/grid";
 import { VideoPlayer } from "@/components/domains/video/video-player";
-import { DropArea, DropLocation } from "@/components/drag-n-drop/drop-area";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
 import { GridItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -10,6 +13,37 @@ import { toast } from "sonner";
 export default function GridViewPage() {
   const sh = useSourceHandlers();
   const [gridItems, setGridItems] = useState<GridItem[]>([]);
+
+  const [_, setGridItemsHistory] = useState<GridItem[][]>([[]]);
+
+  const pushGridItemsHistory = useCallback((gridItems: GridItem[]) => {
+    setGridItemsHistory((prev) => {
+      const result = [...prev];
+      result.push(gridItems);
+      return result;
+    });
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    setGridItemsHistory((p) => {
+      if (p.length <= 1) return p;
+      const history = [...p].slice(0, -1);
+      setGridItems(history.slice(-1)[0]);
+      return history;
+    });
+  }, []);
+
+  useEffect(() => {
+    function handleKeyDown(e: globalThis.KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+        e.preventDefault();
+        handleUndo();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleUndo]);
 
   useEffect(() => {
     const direction = true;
@@ -33,16 +67,6 @@ export default function GridViewPage() {
       });
     }, 100);
   }, []);
-
-  const getLastRowOfColumn = useCallback(
-    (column: number) => {
-      return Math.max(
-        ...gridItems.filter((gi) => gi.column === column).map((gi) => gi.row),
-        0
-      );
-    },
-    [gridItems]
-  );
 
   const freeUpRow = useCallback(
     (
@@ -75,13 +99,17 @@ export default function GridViewPage() {
   );
 
   const handleRemove = useCallback((url: string) => {
-    setGridItems((prev) => prev.filter((p) => p.url !== url));
+    setGridItems((prev) => {
+      const result = prev.filter((p) => p.url !== url);
+      pushGridItemsHistory(result);
+      return result;
+    });
   }, []);
 
   const handleDrop = useCallback(
     (url: string, location: DropLocation, currentUrl?: string) => {
       setGridItems((prev) => {
-        const gridItems = [...prev];
+        const gridItems = prev.map((p) => ({ ...p }));
 
         if (gridItems.some((gi) => gi.url === url)) {
           toast.error("URL already in the grid");
@@ -101,6 +129,7 @@ export default function GridViewPage() {
 
         if (!currentItem) {
           gridItems.push({ url, column: 0, row: 0 });
+          pushGridItemsHistory(gridItems);
           return gridItems;
         }
 
@@ -120,7 +149,7 @@ export default function GridViewPage() {
           gridItems.push({
             url,
             column,
-            row: getLastRowOfColumn(column),
+            row: 0,
           });
         } else if (location === "right" && urlItem) {
         } else if (location === "right") {
@@ -129,7 +158,7 @@ export default function GridViewPage() {
           gridItems.push({
             url,
             column,
-            row: getLastRowOfColumn(column),
+            row: 0,
           });
         } else if (location === "top" && urlItem) {
         } else if (location === "top") {
@@ -151,10 +180,11 @@ export default function GridViewPage() {
           });
         }
 
+        pushGridItemsHistory(gridItems);
         return gridItems;
       });
     },
-    [sh, sh.custom, getLastRowOfColumn]
+    [sh, sh.custom]
   );
 
   return (

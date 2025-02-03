@@ -77,3 +77,20 @@
 
 - [ ] Implement picture-in-picture. (unstable). Ref: https://deepak-mondal.medium.com/using-document-picture-in-picture-with-react-dab900dcc23c
 - [ ] Implement 'do not show again' to confirm dialogs. Idea: `notAskAgainId` as numeric value
+
+
+**Version 2.0**
+- [x] Built-in and custom source handlers
+  - [x] Source handlers handles with specific URLs in order to obtain its metadata required for displaying the streaming video.
+  - [x] Custom handlers can be created through modern editor, and can be tested before saving.
+  - [x] Custom handlers are stored in localStorage.
+  - [x] Custom handlers expands the software capabilities.
+- [x] URL drag-n-drop
+- [x] Multiple instances
+- [ ] Move streamings through different instances
+- [ ] Draggable video grid.
+- [x] Standardized video controls
+- [x] Dark theme
+  - [x] Follows the system theme changing if it matches with the current system color schema.
+- [x] Fully responsible
+- [x] Customize color palette

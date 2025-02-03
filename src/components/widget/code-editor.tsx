@@ -32,10 +32,8 @@ export function CodeEditor({
       inherit: true,
       rules: [],
       colors: {
-        "editor.background": "#09090b",
         "editor.selectionBackground": `${currentColorPrimaryHex}50`,
-        "editor.selectionHighlight": "currentColorPrimaryHex",
-        // "editor.lineHighlightBackground": "currentColorPrimaryHex",
+        "editor.selectionHighlight": currentColorPrimaryHex,
       },
     });
 

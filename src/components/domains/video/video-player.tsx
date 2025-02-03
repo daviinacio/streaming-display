@@ -1,4 +1,7 @@
-import { DropArea, DropLocation } from "@/components/drag-n-drop/drop-area";
+import {
+  DropArea,
+  DropLocation,
+} from "@/components/domains/drag-n-drop/drop-area";
 import {
   Button,
   ButtonProps,
@@ -115,14 +118,19 @@ export function VideoPlayer({
 
   useEffect(
     () =>
-      console.log(item.url, {
+      console.debug(item.url, {
         refetchInterval:
           refetchInterval && millisecondsToString(refetchInterval),
       }),
     [refetchInterval]
   );
 
-  const { data, error, refetch, isFetching, failureCount } = useQuery({
+  const {
+    data,
+    error: fetchError,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: ["handler", handler?.id, item.url],
     queryFn: () =>
       handler &&
@@ -134,10 +142,16 @@ export function VideoPlayer({
     refetchOnMount: false,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
-    staleTime: 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     refetchInterval: refetchInterval,
-    // retryDelay: 2 * 1000,
   });
+
+  const [error, setError] = useState(fetchError);
+
+  useEffect(() => {
+    if (isFetching) return;
+    setError(fetchError);
+  }, [isFetching, fetchError, data]);
 
   useEffect(() => {
     if (!wrapperRef.current || !gridItemRef.current) return;
@@ -203,7 +217,6 @@ export function VideoPlayer({
     if (!wrapperRef.current) return;
     let timeout: NodeJS.Timeout | null = null;
     function activity(e: Event) {
-      // console.log(e);
       if (timeout) {
         clearTimeout(timeout);
         timeout = null;
@@ -227,16 +240,16 @@ export function VideoPlayer({
 
   const handleRefresh = useCallback(
     async (err?: any, err2?: any) => {
-      if (err === "force" || err === "hlsError") {
-        console.log("Refetching", err, err2, item.url);
+      if (err === "force" || (err === "hlsError" && !error)) {
+        console.debug("Refetching", err, err2, item.url);
         await refetch();
       } else {
-        console.log("Playing", err, err2, item.url);
+        console.debug("Playing", err, err2, item.url);
       }
 
       dispatch({ type: "play" });
     },
-    [refetch, failureCount]
+    [refetch, error]
   );
 
   useEffect(() => {
