@@ -238,19 +238,29 @@ export function VideoPlayer({
     };
   }, [wrapperRef.current]);
 
-  const handleRefresh = useCallback(
-    async (err?: any, err2?: any) => {
-      if (
-        err === "force" ||
-        (err === "hlsError" && !fetchError && !isFetching)
-      ) {
-        console.debug("Refetching", err, err2, item.url);
-        await refetch();
-      } else {
-        console.debug("Playing", err, err2, item.url);
-      }
+  const [forcedRefresh, setForcedRefresh] = useState(false);
 
-      dispatch({ type: "play" });
+  useEffect(() => setForcedRefresh(false), [forcedRefresh]);
+
+  const handleRefresh = useCallback(
+    (err?: any, err2?: any) => {
+      const timeout = setTimeout(
+        async () => {
+          if (err === "force") {
+            setForcedRefresh(true);
+            await refetch();
+          } else if (err === "hlsError" && !fetchError && !isFetching) {
+            await refetch();
+          } else {
+            console.debug("Playing", err, err2, item.url);
+          }
+
+          dispatch({ type: "play" });
+        },
+        err === "force" ? 0 : 2000
+      );
+
+      return () => clearTimeout(timeout);
     },
     [refetch, fetchError, isFetching]
   );
@@ -309,14 +319,15 @@ export function VideoPlayer({
                   state.playing && (
                     <div
                       className={cn(
-                        "absolute top-1 left-1 p-1 z-20 group-hover/player:opacity-0 transition-[opacity] duration-300",
-                        "bg-primary rounded-full"
+                        "absolute top-1 left-1 p-1.5 z-20 transition-[opacity] duration-300",
+                        "bg-primary rounded-full",
+                        !isInactive && "group-hover/player:opacity-0"
                       )}
                     >
-                      <SpeakerLoudIcon className="size-6 text-white" />
+                      <SpeakerLoudIcon className="size-5 text-white" />
                     </div>
                   )}
-                {data && data.sourceUrl && (
+                {data && data.sourceUrl && !forcedRefresh && (
                   <div
                     key="player"
                     className={cn(

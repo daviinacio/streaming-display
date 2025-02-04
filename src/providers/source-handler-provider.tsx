@@ -52,9 +52,9 @@ export function SourceHandlerProvider({
   useEffect(() => {
     (async function () {
       const builtinHandlers: SourceHandler[] = await Promise.all(
-        Object.entries(import.meta.glob("/src/builtin-source-handlers/*")).map(
-          ([_, file]) => file().then((module: any) => module.default)
-        )
+        Object.entries(
+          import.meta.glob("/src/assets/builtin-source-handlers/*")
+        ).map(([_, file]) => file().then((module: any) => module.default))
       );
 
       const customHandlers = await Promise.all(
