@@ -302,11 +302,20 @@ export function VideoPlayer({
           >
             {handler && (
               <>
-                {data && data.sourceUrl && !error && !state.muted && (
-                  <div className="absolute top-2 left-2 z-20 group-hover/player:opacity-0 transition-[opacity] duration-300">
-                    <SpeakerLoudIcon className="size-6" />
-                  </div>
-                )}
+                {data &&
+                  data.sourceUrl &&
+                  !error &&
+                  !state.muted &&
+                  state.playing && (
+                    <div
+                      className={cn(
+                        "absolute top-1 left-1 p-1 z-20 group-hover/player:opacity-0 transition-[opacity] duration-300",
+                        "bg-primary rounded-full"
+                      )}
+                    >
+                      <SpeakerLoudIcon className="size-6 text-white" />
+                    </div>
+                  )}
                 {data && data.sourceUrl && (
                   <div
                     key="player"
