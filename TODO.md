@@ -94,3 +94,10 @@
   - [x] Follows the system theme changing if it matches with the current system color schema.
 - [x] Fully responsible
 - [x] Customize color palette
+- [ ] Resize grid
+  - [ ] Disable grid animation on moving handles
+  - [ ] Create a virtual handles for columns and rows
+    - [ ] Column handles
+    - [ ] Row handles
+      - [ ] Help to select specific height (depending on the current grid state)
+        - [ ] Ex: 2/3, 3/4, etc...

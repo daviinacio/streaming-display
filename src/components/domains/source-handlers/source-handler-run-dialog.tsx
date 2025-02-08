@@ -12,7 +12,6 @@ import {
 } from "@/components/ui";
 import { Form, FormField } from "@/components/ui/form";
 import { SimpleCodeEditor } from "@/components/widget/code-editor-simple";
-import { useTempStorage } from "@/hooks/use-temp-storage";
 import { SourceHandler } from "@/lib/types";
 import { cn, findWildcard } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +24,7 @@ import {
   SourceHandlerSchema,
   sourceHandlerSchemaToJavascript,
 } from "./source-handler-edit-dialog";
+import { useTemporaryState } from "@/hooks/use-temporary-state";
 
 export type RunSourceHandlerDialogProps = PropsWithChildren<{
   sourceHandler: SourceHandlerSchema;
@@ -42,7 +42,10 @@ export function RunSourceHandlerDialog({
   children,
 }: RunSourceHandlerDialogProps) {
   const [open, setOpen] = useState(false);
-  const temp = useTempStorage();
+  const [testUrl, setTestUrl] = useTemporaryState<string>(
+    `run:${sourceHandler.id || "new"}`,
+    ""
+  );
 
   const form = useForm<RunSourceHandlerSchema>({
     resolver: zodResolver(RunSourceHandlerSchema),
@@ -53,10 +56,9 @@ export function RunSourceHandlerDialog({
   });
 
   useEffect(() => {
-    const storageKey = `run:${sourceHandler.id || "new"}`;
-    if (open) form.setValue("url", temp.getItem(storageKey) || "");
-    else if (form.watch("url")) temp.setItem(storageKey, form.watch("url"));
-  }, [open, sourceHandler.id]);
+    if (open) form.setValue("url", testUrl);
+    else if (form.watch("url")) setTestUrl(form.watch("url"));
+  }, [open, testUrl]);
 
   const run = useMutation({
     mutationFn: async ({ url }: RunSourceHandlerSchema) => {

@@ -11,6 +11,7 @@ import {
 export type GridItemProps = HTMLAttributes<HTMLDivElement> & {
   item: GridItemType;
   position?: GridItemPosition;
+  animate?: boolean;
   isMaximized?: boolean;
   grid?: {
     count: number;
@@ -18,7 +19,10 @@ export type GridItemProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
-  ({ children, className, position, isMaximized, ...props }, ref) => {
+  (
+    { children, className, position, isMaximized, animate = true, ...props },
+    ref
+  ) => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     useImperativeHandle(ref, () => playerWrapperRef.current!, []);
 
@@ -38,7 +42,8 @@ export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
       <div
         role="grid-item"
         className={cn(
-          "absolute transition-[width,height,top,left] duration-300",
+          "absolute",
+          animate && "transition-[width,height,top,left] duration-300",
           className
         )}
         ref={playerWrapperRef}

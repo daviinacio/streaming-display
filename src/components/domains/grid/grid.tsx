@@ -5,6 +5,7 @@ import {
   HTMLAttributes,
   ReactElement,
   useMemo,
+  useState,
 } from "react";
 import { GridItemProps } from "./grid-item";
 import { GridItem, GridItemPosition } from "@/lib/types";
@@ -20,6 +21,8 @@ export type GridProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
 };
 
 export function Grid({ children, className, ...props }: GridProps) {
+  const [animate] = useState(true);
+
   const positions = useMemo((): ItemPosition[] => {
     const items = Children.map(children, (c) => c.props.item as GridItem);
     const positions: ItemPosition[] = [];
@@ -63,6 +66,7 @@ export function Grid({ children, className, ...props }: GridProps) {
             grid: {
               count: Children.count(children),
             },
+            animate,
             position: positions.find((it) => it.url === child.props.item.url),
           } as GridItemProps);
         })}

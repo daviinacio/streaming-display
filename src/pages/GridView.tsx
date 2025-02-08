@@ -5,16 +5,30 @@ import {
 import { Grid } from "@/components/domains/grid/grid";
 import { VideoPlayer } from "@/components/domains/video/video-player";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
+import { useTemporaryState } from "@/hooks/use-temporary-state";
 import { GridItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function GridViewPage() {
   const sh = useSourceHandlers();
-  const [gridItems, setGridItems] = useState<GridItem[]>([]);
+  const [gridItems, setGridItems] = useTemporaryState<GridItem[]>(
+    "grid-items",
+    []
+  );
 
-  const [_, setGridItemsHistory] = useState<GridItem[][]>([[]]);
+  const [gridItemsHistory, setGridItemsHistory] = useTemporaryState<
+    GridItem[][]
+  >("grid-items-history", [[]]);
+
+  useEffect(() => {
+    if (
+      gridItems.length > 0 &&
+      (gridItemsHistory.length === 0 || gridItemsHistory[0].length === 0)
+    )
+      setGridItemsHistory([gridItems]);
+  }, [gridItems, gridItemsHistory]);
 
   const pushGridItemsHistory = useCallback((gridItems: GridItem[]) => {
     setGridItemsHistory((prev) => {
@@ -45,28 +59,28 @@ export default function GridViewPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleUndo]);
 
-  useEffect(() => {
-    const direction = true;
-    // TODO: Implement keyboard shortcut for flip items position
-    setTimeout(() => {
-      // Flip items
-      setGridItems((prev) => {
-        const sorted = prev
-          .map((p) => ({ ...p }))
-          .toSorted((a, b) => (a.row >= b.row ? 0 : -1))
-          .toSorted((a, b) => (a.column >= b.column ? 0 : -1));
-        const gridItems = sorted.map((p) => ({ ...p }));
-        // const result =;
-        sorted.forEach((_, i, a) => {
-          const ni = (i + 1) % a.length;
-          gridItems[direction ? i : ni].row = a[direction ? ni : i].row;
-          gridItems[direction ? i : ni].column = a[direction ? ni : i].column;
-        });
+  // useEffect(() => {
+  //   const direction = true;
+  //   // TODO: Implement keyboard shortcut for flip items position
+  //   setTimeout(() => {
+  //     // Flip items
+  //     setGridItems((prev) => {
+  //       const sorted = prev
+  //         .map((p) => ({ ...p }))
+  //         .toSorted((a, b) => (a.row >= b.row ? 0 : -1))
+  //         .toSorted((a, b) => (a.column >= b.column ? 0 : -1));
+  //       const gridItems = sorted.map((p) => ({ ...p }));
+  //       // const result =;
+  //       sorted.forEach((_, i, a) => {
+  //         const ni = (i + 1) % a.length;
+  //         gridItems[direction ? i : ni].row = a[direction ? ni : i].row;
+  //         gridItems[direction ? i : ni].column = a[direction ? ni : i].column;
+  //       });
 
-        return gridItems;
-      });
-    }, 100);
-  }, []);
+  //       return gridItems;
+  //     });
+  //   }, 100);
+  // }, []);
 
   const freeUpRow = useCallback(
     (

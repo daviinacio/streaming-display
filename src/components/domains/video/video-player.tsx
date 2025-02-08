@@ -140,7 +140,7 @@ export function VideoPlayer({
         setRefetchInterval,
       }),
     refetchOnMount: false,
-    refetchOnReconnect: false,
+    refetchOnReconnect: true,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
     refetchInterval: refetchInterval,
@@ -214,6 +214,19 @@ export function VideoPlayer({
   ]);
 
   useEffect(() => {
+    function handleKeyDown(e: globalThis.KeyboardEvent) {
+      if (!state.maximize) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        dispatch({ type: "maximize", value: false });
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [state]);
+
+  useEffect(() => {
     if (!wrapperRef.current) return;
     let timeout: NodeJS.Timeout | null = null;
     function activity(e: Event) {
@@ -239,30 +252,34 @@ export function VideoPlayer({
   }, [wrapperRef.current]);
 
   const [forcedRefresh, setForcedRefresh] = useState(false);
-
   useEffect(() => setForcedRefresh(false), [forcedRefresh]);
 
+  const [refreshCouldDown, setRefreshCouldDown] = useState(false);
+  useEffect(() => {
+    setRefreshCouldDown(true);
+    const timeout = setTimeout(() => setRefreshCouldDown(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [data, error, isFetching]);
+
   const handleRefresh = useCallback(
-    (err?: any, err2?: any) => {
-      const timeout = setTimeout(
-        async () => {
-          if (err === "force") {
-            setForcedRefresh(true);
-            await refetch();
-          } else if (err === "hlsError" && !fetchError && !isFetching) {
-            await refetch();
-          } else {
-            console.debug("Playing", err, err2, item.url);
-          }
+    async (...err: any[]) => {
+      if (refreshCouldDown) return;
+      if (err[0] === "force") {
+        setForcedRefresh(true);
+        await refetch();
+      } else if (err[0] === "hlsError") {
+        console.debug("Refetching", item.url, err.join(", "));
+        await refetch();
 
-          dispatch({ type: "play" });
-        },
-        err === "force" ? 0 : 2000
-      );
+        // Second refresh
+        setTimeout(() => refetch(), 20 * 1000);
+      } else {
+        console.debug("Playing", item.url, err.join(", "));
+      }
 
-      return () => clearTimeout(timeout);
+      dispatch({ type: "play" });
     },
-    [refetch, fetchError, isFetching]
+    [refetch, refreshCouldDown]
   );
 
   useEffect(() => {
@@ -312,7 +329,26 @@ export function VideoPlayer({
           >
             {handler && (
               <>
-                {data &&
+                <div
+                  className={cn(
+                    "absolute top-1 left-1  z-20 transition-[opacity] duration-300",
+                    "  flex flex-col gap-2",
+                    !isInactive && "group-hover/player:opacity-0"
+                  )}
+                >
+                  {data && data.sourceUrl && !error && (
+                    <>
+                      {!state.muted && state.playing && (
+                        <SpeakerLoudIcon className="size-8 bg-primary p-1.5 text-white rounded-full" />
+                      )}
+
+                      {!state.playing && (
+                        <PauseIcon className="size-8 bg-primary p-1 text-white rounded-full" />
+                      )}
+                    </>
+                  )}
+                </div>
+                {/* {data &&
                   data.sourceUrl &&
                   !error &&
                   !state.muted &&
@@ -326,7 +362,7 @@ export function VideoPlayer({
                     >
                       <SpeakerLoudIcon className="size-5 text-white" />
                     </div>
-                  )}
+                  )} */}
                 {data && data.sourceUrl && !forcedRefresh && (
                   <div
                     key="player"
@@ -369,9 +405,9 @@ export function VideoPlayer({
                       onDisablePIP={() =>
                         dispatch({ type: "pip", value: false })
                       }
-                      onEnded={handleRefresh}
-                      onError={handleRefresh}
-                      onBufferEnd={handleRefresh}
+                      onEnded={(...args) => handleRefresh(...args)}
+                      onError={(...args) => handleRefresh(...args)}
+                      onBufferEnd={(...args) => handleRefresh(...args)}
                       controls={false}
                       config={{
                         youtube: {
@@ -562,6 +598,7 @@ export function VideoPlayer({
                           title="Refresh link"
                           className={cn(isFetching && "animate-spin")}
                           onClick={() => handleRefresh("force", null)}
+                          disabled={refreshCouldDown}
                         >
                           <ReloadIcon />
                         </ActionButton>

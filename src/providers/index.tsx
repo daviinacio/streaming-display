@@ -2,14 +2,14 @@ import { Toaster } from "@/components/ui/sonner";
 import { AlertDialogProvider } from "@/providers/alert-dialog-provider";
 import { PreferenceProvider } from "@/providers/preference-provider";
 import { ReactQueryProvider } from "@/providers/query-provider";
-import { TempStorageProvider } from "@/providers/temp-storage-provider";
+import { TemporaryStateProvider } from "@/providers/temporary-state-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { PropsWithChildren } from "react";
 import { SourceHandlerProvider } from "./source-handler-provider";
 
 export function Providers({ children }: PropsWithChildren) {
   return (
-    <TempStorageProvider>
+    <TemporaryStateProvider>
       <PreferenceProvider>
         <SourceHandlerProvider>
           <ThemeProvider defaultTheme="system">
@@ -22,6 +22,6 @@ export function Providers({ children }: PropsWithChildren) {
           </ThemeProvider>
         </SourceHandlerProvider>
       </PreferenceProvider>
-    </TempStorageProvider>
+    </TemporaryStateProvider>
   );
 }

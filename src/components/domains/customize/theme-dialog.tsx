@@ -8,6 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui";
 import { usePreference } from "@/hooks/use-preference";
 import { DialogProps } from "@radix-ui/react-dialog";
@@ -61,18 +65,32 @@ export function ThemeDialog({ children, ...props }: ThemeDialogProps) {
         </DialogHeader>
         <div className="grid grid-cols-4 gap-4">
           {Object.entries(colorList).map(([name, color]) => (
-            <Button
-              key={name}
-              title={name}
-              variant="ghost"
-              className="size-12 p-0 rounded-full hover:scale-110 active:scale-90 transition-[transform]"
-              onClick={() => preferences.setItem("color-primary", color)}
-              style={{
-                backgroundColor: `hsl(${color})`,
-              }}
-            >
-              {colorPrimary === color && <CheckIcon className="size-8" />}
-            </Button>
+            <TooltipProvider key={name}>
+              <Tooltip delayDuration={0}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="size-12 p-0 rounded-full hover:scale-110 active:scale-90 transition-[transform]"
+                    onClick={() => preferences.setItem("color-primary", color)}
+                    style={{
+                      backgroundColor: `hsl(${color})`,
+                    }}
+                  >
+                    {colorPrimary === color && (
+                      <CheckIcon className="size-8 text-white" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  className="font-semibold pointer-events-none"
+                  style={{
+                    backgroundColor: `hsl(${color})`,
+                  }}
+                >
+                  {name}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ))}
         </div>
         <DialogFooter>
