@@ -5,11 +5,12 @@ type VideoPlayerState = Pick<
   "pip" | "playing" | "light" | "loop" | "playbackRate" | "volume" | "muted"
 > & {
   maximize?: boolean;
+  refetchInterval: number | false;
 };
 
 type VideoPlayerAction =
   | { type: "pip" | "maximize"; value: boolean }
-  | { type: "progress"; value: number }
+  | { type: "progress" | "volume"; value: number }
   | {
       type:
         | "play"
@@ -19,12 +20,12 @@ type VideoPlayerAction =
         | "toggle-pip"
         | "toggle-maximize";
     }
-  | { type: "volume"; value: number };
+  | { type: "refetch-interval"; value: number | false };
 
 export function videoPlayerReducer(
   state: VideoPlayerState,
   action: VideoPlayerAction
-) {
+): VideoPlayerState {
   switch (action.type) {
     case "play":
       return { ...state, playing: true };
@@ -52,6 +53,8 @@ export function videoPlayerReducer(
 
     case "volume":
       return { ...state, volume: action.value };
+    case "refetch-interval":
+      return { ...state, refetchInterval: action.value };
 
     default:
       return state;

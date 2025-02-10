@@ -1,10 +1,7 @@
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import {
-  PersistedClient,
-  PersistQueryClientProvider,
-} from "@tanstack/react-query-persist-client";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { PropsWithChildren, useEffect, useMemo } from "react";
 
 export type ReactQueryProviderProps = PropsWithChildren;
@@ -42,11 +39,12 @@ export function ReactQueryProvider({ children }: ReactQueryProviderProps) {
   useEffect(() => {
     function storageHandler(event: StorageEvent) {
       if (event.key === storageKey) {
-        const value = JSON.parse(event.newValue || "{}") as PersistedClient;
-        persister.persistClient(value);
+        console.log("query-changed");
         persister.restoreClient();
-        console.log("storage event", value);
-
+        // const value = JSON.parse(event.newValue || "{}") as PersistedClient;
+        // persister.persistClient(value);
+        // persister.restoreClient();
+        // console.log("storage event", value);
         // value.clientState.queries.forEach((query) => {
         //   const currState = queryClient.getQueriesData
         //   queryClient.setQueryData(query.queryKey, () => query.state.data);

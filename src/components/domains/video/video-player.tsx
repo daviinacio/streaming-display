@@ -41,6 +41,7 @@ import {
   ExternalLinkIcon,
   PictureInPicture2Icon,
   PictureInPictureIcon,
+  Tv2Icon,
   XIcon,
 } from "lucide-react";
 import {
@@ -53,6 +54,7 @@ import {
 } from "react";
 import ReactPlayer from "react-player";
 import FadeLoader from "react-spinners/FadeLoader";
+import { Draggable } from "../drag-n-drop/draggable";
 import { GridItem, GridItemProps } from "../grid/grid-item";
 import { videoPlayerReducer } from "./video-player-reducer";
 
@@ -67,7 +69,12 @@ const activityEvents = [
 ] as const;
 
 type VideoPlayerProps = Omit<GridItemProps, "onDrop"> & {
-  onDrop?: (content: string, location: DropLocation, url: string) => void;
+  onDrop?: (
+    content: string,
+    location: DropLocation,
+    url: string,
+    moving?: boolean
+  ) => void;
   onRemove?: (url: string) => void;
 };
 
@@ -92,6 +99,7 @@ export function VideoPlayer({
   const [state, dispatch] = useReducer(
     videoPlayerReducer,
     preferences.getItem("player-preferences")[item.url] || {
+      refetchInterval: false,
       playing: true,
       muted: true,
       volume: 0.5,
@@ -114,15 +122,15 @@ export function VideoPlayer({
     dispatch({ type: "maximize", value: false });
   }, [handler?.allow?.maximize]);
 
-  const [refetchInterval, setRefetchInterval] = useState<number | false>(false);
+  // const [refetchInterval, setRefetchInterval] = useState<number | false>(false);
 
   useEffect(
     () =>
       console.debug(item.url, {
         refetchInterval:
-          refetchInterval && millisecondsToString(refetchInterval),
+          state.refetchInterval && millisecondsToString(state.refetchInterval),
       }),
-    [refetchInterval]
+    [state.refetchInterval]
   );
 
   const {
@@ -137,13 +145,15 @@ export function VideoPlayer({
       handler.resolver({
         url: item.url,
         minimize: () => console.log("TODO: Implement minimize", item.url),
-        setRefetchInterval,
+        setRefetchInterval: (value) =>
+          dispatch({ type: "refetch-interval", value }),
       }),
     refetchOnMount: false,
     refetchOnReconnect: true,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
-    refetchInterval: refetchInterval,
+    refetchInterval: state.refetchInterval,
+    enabled: !!handler,
   });
 
   const [error, setError] = useState(fetchError);
@@ -295,28 +305,68 @@ export function VideoPlayer({
       grid={grid}
       className={cn(className)}
       isMaximized={state.maximize}
-      onDoubleClick={() =>
-        allowMaximize && dispatch({ type: "toggle-maximize" })
-      }
       ref={gridItemRef}
       {...props}
     >
-      <div
+      <Draggable
+        type="url"
+        value={item.url}
+        onDoubleClick={() =>
+          allowMaximize && dispatch({ type: "toggle-maximize" })
+        }
         className={cn(
           "h-full",
           "duration-500 ease-in delay-100",
           state.maximize &&
             "[[role=grid]:has(&)_[role=grid-item]>div]:opacity-0 [[role=grid]:has(&)_[role=grid-item]>div]:delay-0 [[role=grid]:has(&)_[role=grid-item]>div]:ease-out !opacity-100"
         )}
+        disabled={state.maximize}
+        ghost={
+          <div
+            className={cn(
+              "border-2 px-2 h-[40px] bg-black/70 rounded-md flex items-center gap-2",
+              error ? "border-destructive" : "border-primary"
+            )}
+          >
+            <div>
+              <Tv2Icon
+                className={cn(
+                  "size-5",
+                  error ? "text-destructive" : "text-primary"
+                )}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <p
+                className={cn(
+                  "text-white text-lg font-semibold truncate max-w-[400px]",
+                  "drop-shadow-text"
+                )}
+              >
+                {data?.title || item.url}
+              </p>
+              {handler && handler.logo && (
+                <img
+                  src={handler.logo}
+                  className="bg-cover h-[20px] min-h-[10px] pointer-events-none"
+                />
+              )}
+            </div>
+          </div>
+        }
       >
         <DropArea
-          className={cn("pointer-events-auto  overflow-hidden p-0")}
-          onDrop={(url, location) => onDrop && onDrop(url, location, item.url)}
+          value={item.url}
+          className={cn("pointer-events-auto overflow-hidden p-0")}
+          onDrop={(url, location, moving) =>
+            onDrop && onDrop(url, location, item.url, moving)
+          }
           disabled={state.maximize}
         >
           <div
             className={cn(
-              "h-full w-full ",
+              "h-full w-full",
               "bg-black text-white relative group/player z-[4] rounded-lg overflow-hidden",
               "ring-1 ring-input transition-all duration-300",
               !isInactive && [
@@ -396,6 +446,7 @@ export function VideoPlayer({
                       className={cn(
                         "h-full w-full pointer-events-none relative"
                       )}
+                      stopOnUnmount={true}
                       width="100%"
                       height="100%"
                       onStart={() => dispatch({ type: "play" })}
@@ -430,7 +481,7 @@ export function VideoPlayer({
                       i === 0 ? (
                         <h4
                           key={i}
-                          className="text-4xl text-destructive font-bold mb-2"
+                          className="text-2xl text-destructive font-bold mb-2"
                         >
                           {m}
                         </h4>
@@ -442,6 +493,18 @@ export function VideoPlayer({
                         />
                       )
                     )}
+                  </div>
+                )}
+
+                {!data && !error && isFetching && (
+                  <div className="flex h-full items-center gap-2 justify-center text-xl font-bold">
+                    {/* <LoaderCircleIcon className="size-6 animate-spin" /> */}
+                    <p className="animate-pulse">Fetching metadata</p>
+                    <div className="flex">
+                      <p className="animate-pulse duration-1000">.</p>
+                      <p className="animate-pulse duration-1000 delay-300">.</p>
+                      <p className="animate-pulse duration-1000 delay-700">.</p>
+                    </div>
                   </div>
                 )}
 
@@ -520,7 +583,11 @@ export function VideoPlayer({
                     // (error || !data) && "hidden"
                   )}
                 >
-                  <ScrollArea orientation="horizontal" className="max-w-[50%]">
+                  <ScrollArea
+                    orientation="horizontal"
+                    className="max-w-[50%]"
+                    scrollBarClassName="hidden"
+                  >
                     <div
                       className={cn(
                         "flex items-center",
@@ -579,7 +646,7 @@ export function VideoPlayer({
                   </ScrollArea>
                   <ScrollArea
                     orientation="horizontal"
-                    // fit
+                    scrollBarClassName="hidden"
                     className="max-w-[50%]"
                   >
                     <div className="flex items-center justify-end">
@@ -598,13 +665,13 @@ export function VideoPlayer({
                           title="Refresh link"
                           className={cn(isFetching && "animate-spin")}
                           onClick={() => handleRefresh("force", null)}
-                          disabled={refreshCouldDown}
+                          disabled={refreshCouldDown || isFetching}
                         >
                           <ReloadIcon />
                         </ActionButton>
                       )}
 
-                      {handler.allow?.pip && !error && (
+                      {handler.allow?.pip && !error && data && (
                         <ActionButton
                           title="Picture-in-picture"
                           onClick={() => dispatch({ type: "toggle-pip" })}
@@ -616,7 +683,7 @@ export function VideoPlayer({
                           )}
                         </ActionButton>
                       )}
-                      {allowMaximize && (
+                      {allowMaximize && data && (
                         <ActionButton
                           title="Maximize"
                           onClick={() => dispatch({ type: "toggle-maximize" })}
@@ -635,7 +702,7 @@ export function VideoPlayer({
             )}
           </div>
         </DropArea>
-      </div>
+      </Draggable>
     </GridItem>
   );
 }

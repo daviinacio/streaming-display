@@ -4,6 +4,7 @@ import {
 } from "@/components/domains/drag-n-drop/drop-area";
 import { Grid } from "@/components/domains/grid/grid";
 import { VideoPlayer } from "@/components/domains/video/video-player";
+import { useMultiInstanceDrag } from "@/hooks/use-multi-instance-drag";
 import { useSourceHandlers } from "@/hooks/use-source-handlers";
 import { useTemporaryState } from "@/hooks/use-temporary-state";
 import { GridItem } from "@/lib/types";
@@ -121,11 +122,16 @@ export default function GridViewPage() {
   }, []);
 
   const handleDrop = useCallback(
-    (url: string, location: DropLocation, currentUrl?: string) => {
+    (
+      url: string,
+      location: DropLocation,
+      currentUrl?: string,
+      moving?: boolean
+    ) => {
       setGridItems((prev) => {
         const gridItems = prev.map((p) => ({ ...p }));
 
-        if (gridItems.some((gi) => gi.url === url)) {
+        if (!moving && gridItems.some((gi) => gi.url === url)) {
           toast.error("URL already in the grid");
           return gridItems;
         }
@@ -135,8 +141,6 @@ export default function GridViewPage() {
           toast.error("There's no handler available for this URL");
           return gridItems;
         }
-
-        if (url === currentUrl) return gridItems;
 
         const urlItem = gridItems.find((it) => it.url === url);
         const currentItem = gridItems.find((it) => it.url === currentUrl);
@@ -157,6 +161,10 @@ export default function GridViewPage() {
         } else if (location === "center") {
           currentItem.url = url;
         } else if (location === "left" && urlItem) {
+          const column = currentItem.column - 1;
+          freeUpColumn(gridItems, column, false);
+          urlItem.column = column;
+          urlItem.row = 0;
         } else if (location === "left") {
           const column = currentItem.column - 1;
           freeUpColumn(gridItems, column, false);
@@ -166,6 +174,10 @@ export default function GridViewPage() {
             row: 0,
           });
         } else if (location === "right" && urlItem) {
+          const column = currentItem.column + 1;
+          freeUpColumn(gridItems, column, true);
+          urlItem.column = column;
+          urlItem.row = 0;
         } else if (location === "right") {
           const column = currentItem.column + 1;
           freeUpColumn(gridItems, column, true);
@@ -175,6 +187,10 @@ export default function GridViewPage() {
             row: 0,
           });
         } else if (location === "top" && urlItem) {
+          const row = currentItem.row - 1;
+          freeUpRow(gridItems, currentItem.column, row, false);
+          urlItem.column = currentItem.column;
+          urlItem.row = row;
         } else if (location === "top") {
           const row = currentItem.row - 1;
           freeUpRow(gridItems, currentItem.column, row, false);
@@ -184,6 +200,10 @@ export default function GridViewPage() {
             row,
           });
         } else if (location === "bottom" && urlItem) {
+          const row = currentItem.row + 1;
+          freeUpRow(gridItems, currentItem.column, row, true);
+          urlItem.column = currentItem.column;
+          urlItem.row = row;
         } else if (location === "bottom") {
           const row = currentItem.row + 1;
           freeUpRow(gridItems, currentItem.column, row, true);
@@ -201,10 +221,34 @@ export default function GridViewPage() {
     [sh, sh.custom]
   );
 
+  useMultiInstanceDrag({
+    onDrop(url, swapUrl) {
+      if (gridItems.every((gi) => gi.url !== url)) return false;
+
+      if (!swapUrl) {
+        handleRemove(url);
+        return true;
+      }
+
+      if (gridItems.some((gi) => gi.url === swapUrl)) return false;
+
+      setGridItems((prev) => {
+        const gridItems = prev.map((p) => ({ ...p }));
+        const urlItem = gridItems.find((it) => it.url === url);
+        if (!urlItem) return prev;
+        urlItem.url = swapUrl;
+        return gridItems;
+      });
+      return true;
+    },
+  });
+
   return (
     <div className="h-full bg-primary">
       <DropArea
-        onDrop={handleDrop}
+        onDrop={(url, location, moving) =>
+          handleDrop(url, location, undefined, moving)
+        }
         onlyCenter={true}
         className={cn(
           "bg-background rounded-t-xl p-0 shadow-md shadow-black",

@@ -1,3 +1,4 @@
+import { useMultiInstanceDrag } from "@/hooks/use-multi-instance-drag";
 import { cn } from "@/lib/utils";
 import {
   forwardRef,
@@ -18,7 +19,8 @@ export const DropLocation = [
 export type DropLocation = (typeof DropLocation)[number];
 
 export type DropAreaProps = Omit<HTMLAttributes<HTMLDivElement>, "onDrop"> & {
-  onDrop?: (content: string, position: DropLocation) => void;
+  value?: string;
+  onDrop?: (content: string, position: DropLocation, moving?: boolean) => void;
   onlyCenter?: boolean;
   disabled?: boolean | ((url?: string) => boolean);
 };
@@ -28,6 +30,7 @@ const paddingPercentage = 15;
 export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
   (
     {
+      value,
       className,
       children,
       onDrop,
@@ -39,6 +42,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
   ) => {
     const dropRef = useRef<HTMLDivElement>(null);
     // useImperativeHandle(, () => dropRef.current!, []);
+    const { notifyDrop, getDragState } = useMultiInstanceDrag();
 
     const calcDragPosition = useCallback(
       (x: number, y: number): DropLocation => {
@@ -115,14 +119,18 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
         }
 
         const url = data.endsWith("/") ? data.slice(0, -1) : data;
-
         if (typeof disabled === "function" ? disabled(url) : disabled) return;
-
-        // TODO: Implement drop in another instance
 
         const { x, y } = getDragXY(e);
         const position = calcDragPosition(x, y);
-        onDrop && onDrop(url, position);
+        const dragState = getDragState();
+        const moving = !!(dragState.url && dragState.url.trim() === url.trim());
+
+        onDrop && onDrop(url, position, moving);
+        notifyDrop({
+          value: url,
+          swapUrl: position === "center" ? value : undefined,
+        });
       }
 
       function handleDragOver(e: DragEvent) {
@@ -177,7 +185,15 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
         dropRef.current?.removeEventListener("dragleave", handleDragLeave);
         dropRef.current?.removeEventListener("dragenter", handleDragEnter);
       };
-    }, [dropRef.current, disabled, onlyCenter, onDrop]);
+    }, [
+      dropRef.current,
+      disabled,
+      onlyCenter,
+      onDrop,
+      value,
+      notifyDrop,
+      getDragState,
+    ]);
 
     return (
       <div

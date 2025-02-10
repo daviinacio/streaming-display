@@ -27,6 +27,7 @@ export default {
   },
   allow: {
     maximize: true,
-    volume: true
+    volume: true,
+    refresh: true
   },
 }

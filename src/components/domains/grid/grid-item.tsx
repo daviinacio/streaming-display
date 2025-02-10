@@ -20,7 +20,16 @@ export type GridItemProps = HTMLAttributes<HTMLDivElement> & {
 
 export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
   (
-    { children, className, position, isMaximized, animate = true, ...props },
+    {
+      children,
+      className,
+      position,
+      isMaximized,
+      item,
+      grid,
+      animate = true,
+      ...props
+    },
     ref
   ) => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);

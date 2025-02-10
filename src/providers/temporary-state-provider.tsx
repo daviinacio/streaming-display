@@ -50,7 +50,6 @@ export function TemporaryStateProvider({ children }: PropsWithChildren) {
             ? setter(data[key] || fallback)
             : setter) || fallback;
 
-        console.log("setItem", key, newValue, data);
         return {
           ...data,
           [key]: newValue,
