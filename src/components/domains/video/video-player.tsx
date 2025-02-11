@@ -122,8 +122,6 @@ export function VideoPlayer({
     dispatch({ type: "maximize", value: false });
   }, [handler?.allow?.maximize]);
 
-  // const [refetchInterval, setRefetchInterval] = useState<number | false>(false);
-
   useEffect(
     () =>
       console.debug(item.url, {
@@ -446,7 +444,7 @@ export function VideoPlayer({
                       className={cn(
                         "h-full w-full pointer-events-none relative"
                       )}
-                      stopOnUnmount={true}
+                      stopOnUnmount={false}
                       width="100%"
                       height="100%"
                       onStart={() => dispatch({ type: "play" })}

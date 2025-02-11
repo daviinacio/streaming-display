@@ -24,6 +24,18 @@ export function FullscreenButton(props: ButtonProps) {
     }
   }, [isFullscreen]);
 
+  useEffect(() => {
+    function handleKeyDown(e: globalThis.KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [toggleFullscreen]);
+
   return (
     <HeaderButton onClick={toggleFullscreen} {...props}>
       {isFullscreen ? <ExitFullScreenIcon /> : <EnterFullScreenIcon />}
