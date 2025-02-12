@@ -318,7 +318,7 @@ export function VideoPlayer({
           state.maximize &&
             "[[role=grid]:has(&)_[role=grid-item]>div]:opacity-0 [[role=grid]:has(&)_[role=grid-item]>div]:delay-0 [[role=grid]:has(&)_[role=grid-item]>div]:ease-out !opacity-100"
         )}
-        disabled={state.maximize}
+        // disabled={state.maximize}
         ghost={
           <div
             className={cn(
@@ -396,21 +396,6 @@ export function VideoPlayer({
                     </>
                   )}
                 </div>
-                {/* {data &&
-                  data.sourceUrl &&
-                  !error &&
-                  !state.muted &&
-                  state.playing && (
-                    <div
-                      className={cn(
-                        "absolute top-1 left-1 p-1.5 z-20 transition-[opacity] duration-300",
-                        "bg-primary rounded-full",
-                        !isInactive && "group-hover/player:opacity-0"
-                      )}
-                    >
-                      <SpeakerLoudIcon className="size-5 text-white" />
-                    </div>
-                  )} */}
                 {data && data.sourceUrl && !forcedRefresh && (
                   <div
                     key="player"

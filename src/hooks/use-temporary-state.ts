@@ -22,8 +22,10 @@ export function useTemporaryState<T>(
       "useTemporaryState must be used within a TemporaryStateProvider"
     );
 
+  const defaultData = useMemo(() => defaultValue, []);
+
   const value = useMemo(
-    () => (context.getItem(key) || defaultValue || undefined) as T,
+    () => (context.getItem(key) ?? defaultData ?? undefined) as T,
     [context.getItem]
   );
   const dispatch = useCallback<UseTemporaryStateDispatch<T>>(

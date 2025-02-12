@@ -83,6 +83,28 @@ export default function GridViewPage() {
   //   }, 100);
   // }, []);
 
+  useEffect(() => {
+    let wakeLock: WakeLockSentinel | undefined = undefined;
+
+    navigator.wakeLock.request("screen").then((value) => {
+      console.debug("Wake locked");
+      wakeLock = value;
+    });
+
+    return () => {
+      wakeLock &&
+        wakeLock.release().then(() => console.debug("Wake lock released"));
+    };
+
+    // try {
+    //   wakeLock = await navigator.wakeLock.request("screen");
+    //   statusElem.textContent = "Wake Lock is active!";
+    // } catch (err) {
+    //   // The Wake Lock request has failed - usually system related, such as battery.
+    //   statusElem.textContent = `${err.name}, ${err.message}`;
+    // }
+  }, []);
+
   const freeUpRow = useCallback(
     (
       gridItems: GridItem[],
