@@ -23,6 +23,11 @@ export default function GridViewPage() {
     GridItem[][]
   >("grid-items-history", [[]]);
 
+  const [_, setGridItemsHistoryUndoOffset] = useTemporaryState<number>(
+    "grid-items-history-undo-offset",
+    0
+  );
+
   useEffect(() => {
     if (
       gridItems.length > 0 &&
@@ -32,25 +37,58 @@ export default function GridViewPage() {
   }, [gridItems, gridItemsHistory]);
 
   const pushGridItemsHistory = useCallback((gridItems: GridItem[]) => {
-    setGridItemsHistory((prev) => {
-      const result = [...prev];
-      result.push(gridItems);
-      return result;
+    console.log("pushGridItemsHistory");
+    let ran = false;
+    setGridItemsHistoryUndoOffset((offset) => {
+      setGridItemsHistory((prev) => {
+        if (ran) return prev;
+        ran = true;
+        const result = [...prev.slice(0, offset > 0 ? -offset : undefined)];
+        result.push(gridItems);
+        console.log({ result });
+        return result;
+      });
+
+      return 0;
     });
   }, []);
 
   const handleUndo = useCallback(() => {
-    setGridItemsHistory((p) => {
-      if (p.length <= 1) return p;
-      const history = [...p].slice(0, -1);
-      setGridItems(history.slice(-1)[0]);
-      return history;
+    setGridItemsHistoryUndoOffset((offset) => {
+      if (offset >= gridItemsHistory.length) return offset;
+      offset++;
+      const items =
+        gridItemsHistory.slice(
+          -(offset + 1),
+          offset > 0 ? -offset : undefined
+        )[0] || [];
+      setGridItems(items);
+      return offset;
     });
-  }, []);
+  }, [gridItemsHistory]);
+
+  const handleRedo = useCallback(() => {
+    setGridItemsHistoryUndoOffset((offset) => {
+      if (offset <= 0) return offset;
+      offset--;
+      const items = gridItemsHistory.slice(
+        -(offset + 1),
+        offset > 0 ? -offset : undefined
+      )[0];
+      setGridItems(items);
+      return offset;
+    });
+  }, [gridItemsHistory]);
 
   useEffect(() => {
     function handleKeyDown(e: globalThis.KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+      if (
+        ((e.metaKey || e.ctrlKey) && e.key === "y") ||
+        ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "z")
+      ) {
+        e.preventDefault();
+        handleRedo();
+      } else if ((e.metaKey || e.ctrlKey) && e.key === "z") {
         e.preventDefault();
         handleUndo();
       }
@@ -58,7 +96,7 @@ export default function GridViewPage() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleUndo]);
+  }, [handleUndo, handleRedo]);
 
   // useEffect(() => {
   //   const direction = true;
@@ -95,14 +133,6 @@ export default function GridViewPage() {
       wakeLock &&
         wakeLock.release().then(() => console.debug("Wake lock released"));
     };
-
-    // try {
-    //   wakeLock = await navigator.wakeLock.request("screen");
-    //   statusElem.textContent = "Wake Lock is active!";
-    // } catch (err) {
-    //   // The Wake Lock request has failed - usually system related, such as battery.
-    //   statusElem.textContent = `${err.name}, ${err.message}`;
-    // }
   }, []);
 
   const freeUpRow = useCallback(

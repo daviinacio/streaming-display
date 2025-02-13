@@ -5,7 +5,25 @@ import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { defineConfig } from "vite";
 import pkg from "./package.json";
 
+const packages: { [key in string]: string[] } = {};
+const packageKeys = Object.keys(packages) as Array<keyof typeof packages>;
+
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id: string) => {
+          const packageName = packageKeys.find((pkg) =>
+            packages[pkg].some((m) => id.includes(`/${m}/`))
+          );
+          if (packageName) return packageName;
+          else if (id.includes("/node_modules/")) return "vendor";
+          else if (id.includes("/pages/")) return;
+          return "index";
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     prism({

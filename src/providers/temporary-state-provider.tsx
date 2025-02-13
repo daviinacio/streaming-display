@@ -47,8 +47,8 @@ export function TemporaryStateProvider({ children }: PropsWithChildren) {
       setData((data) => {
         const newValue =
           (typeof setter === "function"
-            ? setter(data[key] || fallback)
-            : setter) || fallback;
+            ? setter(data[key] ?? fallback)
+            : setter) ?? fallback;
 
         return {
           ...data,

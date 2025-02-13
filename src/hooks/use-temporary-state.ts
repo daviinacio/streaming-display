@@ -22,7 +22,10 @@ export function useTemporaryState<T>(
       "useTemporaryState must be used within a TemporaryStateProvider"
     );
 
-  const defaultData = useMemo(() => defaultValue, []);
+  const defaultData = useMemo(() => {
+    // if (!context.getItem(key)) context.setItem(key, defaultValue, defaultValue);
+    return defaultValue;
+  }, []);
 
   const value = useMemo(
     () => (context.getItem(key) ?? defaultData ?? undefined) as T,
