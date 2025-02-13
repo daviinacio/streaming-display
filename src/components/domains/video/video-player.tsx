@@ -449,6 +449,8 @@ export function VideoPlayer({
                         },
                       }}
                       {...state}
+                      volume={state.muted ? 0 : state.volume}
+                      muted={false}
                     />
                   </div>
                 )}
