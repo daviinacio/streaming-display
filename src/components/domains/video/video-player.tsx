@@ -218,6 +218,7 @@ export function VideoPlayer({
     gridItemRef.current,
     state.playing,
     state.maximize,
+    item,
     grid?.count,
   ]);
 

@@ -37,7 +37,6 @@ export default function GridViewPage() {
   }, [gridItems, gridItemsHistory]);
 
   const pushGridItemsHistory = useCallback((gridItems: GridItem[]) => {
-    console.log("pushGridItemsHistory");
     let ran = false;
     setGridItemsHistoryUndoOffset((offset) => {
       setGridItemsHistory((prev) => {
@@ -45,7 +44,6 @@ export default function GridViewPage() {
         ran = true;
         const result = [...prev.slice(0, offset > 0 ? -offset : undefined)];
         result.push(gridItems);
-        console.log({ result });
         return result;
       });
 
