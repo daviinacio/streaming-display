@@ -13,7 +13,7 @@ const defaultTempItem = {};
 export interface TemporaryStateContextProps {
   setItem: (
     key: string,
-    value: any | ((prev: any) => any),
+    setter: any | ((prev: any) => any),
     fallback: any
   ) => void;
   getItem: (key: string) => any;

@@ -27,7 +27,10 @@ const defaultPreferences: Preferences = {
 const storageKey = "preferences";
 
 export interface PreferenceContextProps {
-  setItem: <K extends keyof Preferences>(key: K, value: Preferences[K]) => void;
+  setItem: <K extends keyof Preferences>(
+    key: K,
+    setter: Preferences[K] | ((prev: Preferences[K]) => Preferences[K])
+  ) => void;
   getItem: <K extends keyof Preferences>(key: K) => Preferences[K];
   resetItem: <K extends keyof Preferences>(key: K) => void;
 }
@@ -64,12 +67,19 @@ export function PreferenceProvider({ children }: PropsWithChildren) {
   }, []);
 
   const setItem = useCallback<PreferenceContextProps["setItem"]>(
-    (key, value) =>
-      setData((data) => ({
-        ...defaultPreferences,
-        ...data,
-        [key]: value,
-      })),
+    (key, setter) =>
+      setData((data) => {
+        const newValue =
+          (typeof setter === "function"
+            ? setter(data[key] ?? defaultPreferences[key])
+            : setter) ?? defaultPreferences[key];
+
+        return {
+          ...defaultPreferences,
+          ...data,
+          [key]: newValue,
+        };
+      }),
     []
   );
 

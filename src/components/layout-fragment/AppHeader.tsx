@@ -3,25 +3,18 @@ import {
   FullscreenButton,
   HeaderButton,
   ThemeButton,
+  ToggleFitVideoButton,
 } from "@/components/widget";
 import { cn } from "@/lib/utils";
-import {
-  ExpandIcon,
-  ExternalLinkIcon,
-  FileCogIcon,
-  PaletteIcon,
-  ShrinkIcon,
-} from "lucide-react";
+import { ExternalLinkIcon, FileCogIcon, PaletteIcon } from "lucide-react";
 import { HTMLAttributes } from "react";
+import { ThemeDialog } from "../domains/customize/theme-dialog";
 import { SourceHandlerListDialog } from "../domains/source-handlers/source-handler-list-dialog";
 import { Button, ButtonProps } from "../ui";
-import { usePreference } from "@/hooks/use-preference";
-import { ThemeDialog } from "../domains/customize/theme-dialog";
 
 export type AppHeaderProps = HTMLAttributes<HTMLHeadElement>;
 
 export function AppHeader({ className, ...props }: AppHeaderProps) {
-  const preferences = usePreference();
   return (
     <header
       {...props}
@@ -51,17 +44,7 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
           </div>
         </div>
         <div className="flex items-center sm:gap-1">
-          <HeaderButton
-            title="Fit video"
-            onClick={() => {
-              preferences.setItem(
-                "fit-video",
-                !preferences.getItem("fit-video")
-              );
-            }}
-          >
-            {preferences.getItem("fit-video") ? <ShrinkIcon /> : <ExpandIcon />}
-          </HeaderButton>
+          <ToggleFitVideoButton title="Fit video" />
 
           <SourceHandlerListDialog>
             <span>
