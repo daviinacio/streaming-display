@@ -53,6 +53,7 @@ export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
         className={cn(
           "absolute",
           animate && "transition-[width,height,top,left] duration-300",
+          isMaximized && "z-20",
           className
         )}
         ref={playerWrapperRef}
