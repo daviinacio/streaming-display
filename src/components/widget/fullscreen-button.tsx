@@ -12,9 +12,9 @@ export function FullscreenButton(props: ButtonProps) {
 
   useEffect(() => {
     if (isFullscreen) {
-      document.documentElement.requestFullscreen();
+      document.documentElement.requestFullscreen().catch(() => {});
     } else {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(() => {});
     }
   }, [isFullscreen]);
 

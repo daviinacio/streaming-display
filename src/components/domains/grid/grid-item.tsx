@@ -47,6 +47,15 @@ export const GridItem = forwardRef<HTMLDivElement, GridItemProps>(
       return position;
     }, [position, isMaximized]);
 
+    // const child = useMemo(() => children, [children.props]);
+
+    // const C = () => children;
+    // const Child = memo(C);
+
+    // console.log("render");
+
+    // useEffect(() => console.log("child", child.props), [child]);
+
     return (
       <div
         role="grid-item"

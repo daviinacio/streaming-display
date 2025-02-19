@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui";
 import { usePreference } from "@/hooks/use-preference";
+import { cn } from "@/lib/utils";
 import { DialogProps } from "@radix-ui/react-dialog";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
@@ -70,7 +71,10 @@ export function ThemeDialog({ children, ...props }: ThemeDialogProps) {
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="size-12 p-0 rounded-full hover:scale-110 active:scale-90 transition-[transform]"
+                    className={cn(
+                      "size-12 p-0 rounded-full",
+                      "hover:scale-110 active:scale-90 transition-[transform] mx-auto"
+                    )}
                     onClick={() => preferences.setItem("color-primary", color)}
                     style={{
                       backgroundColor: `hsl(${color})`,
@@ -93,11 +97,10 @@ export function ThemeDialog({ children, ...props }: ThemeDialogProps) {
             </TooltipProvider>
           ))}
         </div>
-        <DialogFooter>
-          <DialogClose>
-            <Button variant="outline" className="w-full">
-              Close
-            </Button>
+        <DialogFooter className="grid grid-cols-1 sm:grid-cols-2">
+          <div />
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

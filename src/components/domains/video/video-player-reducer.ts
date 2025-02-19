@@ -1,6 +1,6 @@
 import { BaseReactPlayerProps } from "react-player/base";
 
-type VideoPlayerState = Pick<
+export type VideoPlayerState = Pick<
   BaseReactPlayerProps,
   "pip" | "playing" | "light" | "loop" | "playbackRate" | "volume" | "muted"
 > & {
@@ -8,7 +8,7 @@ type VideoPlayerState = Pick<
   refetchInterval: number | false;
 };
 
-type VideoPlayerAction =
+export type VideoPlayerAction =
   | { type: "pip" | "maximize"; value: boolean }
   | { type: "progress" | "volume"; value: number }
   | {

@@ -127,7 +127,7 @@ img {
 }
 
 [role=dialog][data-state=open] {
-  z-index: 10;
+  z-index: 20;
 }
 
 [role=dialog][data-state=open]:not(:has(~ [role=dialog][data-state=open])) {

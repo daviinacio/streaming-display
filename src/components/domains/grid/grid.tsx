@@ -4,6 +4,7 @@ import {
   cloneElement,
   HTMLAttributes,
   ReactElement,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -11,6 +12,7 @@ import {
 } from "react";
 import { GridItemProps } from "./grid-item";
 import { GridItem, GridItemPosition } from "@/lib/types";
+import { useTemporaryState } from "@/hooks/use-temporary-state";
 
 type ItemPosition = GridItemPosition & {
   url: string;
@@ -22,10 +24,27 @@ export type GridProps = Omit<HTMLAttributes<HTMLDivElement>, "children"> & {
   rows?: number;
 };
 
+const minWidth = 5;
+
 export function Grid({ children, className, ...props }: GridProps) {
   const [animate, setAnimate] = useState(true);
 
-  const [joints, setJoints] = useState<{ [key: number]: number }>({});
+  const [joints, setJoints] = useTemporaryState<number[]>("grid-joints", []);
+  const [jointChangeHistory, setJointChangeHistory] = useTemporaryState<
+    number[]
+  >("grid-joint-change-history", []);
+
+  const pushJointChangeHistory = useCallback(
+    (index: number) =>
+      setJointChangeHistory((prev) => {
+        const result = [...prev].filter((v) => v !== index);
+
+        if (result.slice(-1)[0] !== index) result.push(index);
+
+        return result;
+      }),
+    []
+  );
 
   const columns = useMemo(() => {
     const items = Children.map(children, (c) => c.props.item as GridItem);
@@ -38,44 +57,145 @@ export function Grid({ children, className, ...props }: GridProps) {
         });
         return acc;
       }, {} as { [key: number]: [{ url: string; row: number }] })
-    );
+    ).toSorted(([a], [b]) => (parseInt(a) > parseInt(b) ? 0 : -1));
   }, [children]);
 
+  const adjustedJoints = useMemo(() => {
+    const colOriginalWidth = 100 / columns.length;
+
+    const history = jointChangeHistory; //.slice(-columns.length);
+    const lastChanged = jointChangeHistory.slice(-1)[0];
+
+    // console.log(lastChanged, history);
+
+    const result: number[] = Array.from({ length: columns.length - 1 }).map(
+      (_, i) => joints[i]
+    );
+
+    for (let i = 0; i < result.length; i++) {
+      const lastAdjustedJoint = result[i - 1];
+      // const lastJoint = joints[i - 1] || 0;
+
+      // const lastJointHistoryIndex = history.indexOf(i - 1);
+      // const currentJointHistoryIndex = history.indexOf(i);
+      // const nextJointHistoryIndex = history.indexOf(i);
+
+      // if (
+      //   // lastChanged >= i ||
+      //   lastJointHistoryIndex !== -1 &&
+      //   currentJointHistoryIndex !== -1 &&
+      //   lastJointHistoryIndex <= currentJointHistoryIndex
+      // )
+      //   continue;
+
+      if (
+        history.indexOf(lastChanged) !== -1 &&
+        history.indexOf(i) !== -1 &&
+        history.indexOf(lastChanged) <= history.indexOf(i)
+        // (history.indexOf(history.slice(-2)[0]) !== -1 &&
+        //   history.indexOf(i) !== -1 &&
+        //   history.indexOf(history.slice(-2)[0]) <= history.indexOf(i))
+        // (history.indexOf(i - 1) !== -1 &&
+        //   history.indexOf(i) !== -1 &&
+        //   history.indexOf(i - 1) < history.indexOf(i))
+      )
+        continue;
+
+      // if (history.indexOf(lastChanged) <= history.indexOf(i)) continue;
+
+      // const overlaps =
+      //   lastJoint !== undefined &&
+      //   result[i] - (lastJoint + colOriginalWidth) < -5;
+
+      // console.log(i, overlaps);
+
+      // const jsIndex = history.indexOf(i - 1);
+      // const jeIndex = history.indexOf(i);
+
+      // if (
+      // jsIndex === -1 ||
+      // jeIndex === -1 ||
+      // jsIndex !== -1 &&
+      // jeIndex !== -1 &&
+      // jsIndex <= jeIndex
+      //   ||
+      // lastChanged >= i
+      // )
+      // continue;
+
+      // if (
+      //   history.indexOf(i - 1) !== -1 &&
+      //   history.indexOf(i) !== -1 &&
+      //   history.indexOf(i - 1) <= history.indexOf(i)
+      // )
+      //   continue;
+
+      const value = Math.max(
+        result[i] || 0,
+        (lastAdjustedJoint || 0) - (colOriginalWidth - minWidth)
+      );
+
+      // console.log(i, {
+      //   // ljd: (joints[i - 1] || 0) !== (result[i - 1] || 0),
+      //   cjd: (joints[i] || 0) !== (value || 0),
+      // });
+
+      result[i] = value;
+    }
+
+    for (let i = result.length - 1; i >= 0; i--) {
+      const nextAdjustedJoint = result[i + 1];
+      result[i] = Math.min(
+        result[i] || 0,
+        (nextAdjustedJoint || 0) + (colOriginalWidth - minWidth)
+      );
+    }
+
+    for (let i = 0; i < result.length; i++) {
+      const lastAdjustedJoint = result[i - 1];
+
+      result[i] = Math.max(
+        result[i] || 0,
+        (lastAdjustedJoint || 0) - (colOriginalWidth - minWidth)
+      );
+    }
+
+    return result;
+  }, [columns, joints, jointChangeHistory]);
+
   const columnsDimensions = useMemo(() => {
-    return columns
-      .toSorted(([a], [b]) => (parseInt(a) > parseInt(b) ? 0 : -1))
-      .map(([_, rows], colIndex, columns) => {
-        const hasNextColumn = columns.some((_, col) => col > colIndex);
+    return columns.map(([_, rows], colIndex, columns) => {
+      const hasNextColumn = columns.some((_, col) => col === colIndex + 1);
 
-        const jointStart = joints[colIndex - 1] || 0;
-        const jointEnd = (hasNextColumn && joints[colIndex]) || 0;
+      const jointStart = adjustedJoints[colIndex - 1] || 0;
+      const jointEnd = (hasNextColumn && adjustedJoints[colIndex]) || 0;
 
-        const colOriginalWidth = 100 / columns.length - jointStart;
-        const colWidth = colOriginalWidth + jointEnd;
-        const colX = (100 / columns.length) * colIndex + jointStart;
+      const colOriginalWidth = 100 / columns.length - jointStart;
+      const colWidth = colOriginalWidth + jointEnd;
+      const colX = (100 / columns.length) * colIndex + jointStart;
 
-        return {
-          joint: {
-            position: colX + colOriginalWidth,
-            offset: jointEnd,
-          },
-          width: colWidth,
-          x: colX,
-          rows: rows
-            .toSorted((a, b) => (a.row > b.row ? 0 : -1))
-            .map(({ url }, rowIndex) => {
-              const rowY = (100 / rows.length) * rowIndex;
-              const rowHeight = 100 / rows.length;
+      return {
+        joint: {
+          offset: jointEnd,
+          position: colX + colOriginalWidth,
+        },
+        width: colWidth,
+        x: colX,
+        rows: rows
+          .toSorted((a, b) => (a.row > b.row ? 0 : -1))
+          .map(({ url }, rowIndex) => {
+            const rowY = (100 / rows.length) * rowIndex;
+            const rowHeight = 100 / rows.length;
 
-              return {
-                url,
-                y: rowY,
-                height: rowHeight,
-              };
-            }),
-        };
-      });
-  }, [columns, joints]);
+            return {
+              url,
+              y: rowY,
+              height: rowHeight,
+            };
+          }),
+      };
+    });
+  }, [columns, adjustedJoints]);
 
   const itemsPosition = useMemo(() => {
     const itemsPosition: ItemPosition[] = [];
@@ -91,7 +211,7 @@ export function Grid({ children, className, ...props }: GridProps) {
       }
     }
     return itemsPosition;
-  }, columnsDimensions);
+  }, [columnsDimensions]);
 
   return (
     <div className={cn("h-full", className)} {...props}>
@@ -120,12 +240,15 @@ export function Grid({ children, className, ...props }: GridProps) {
                 animate={animate}
                 onDrag={(offset) => {
                   setAnimate(false);
+                  pushJointChangeHistory(i);
                   setJoints((p) => ({
                     ...p,
                     [i]: offset,
                   }));
                 }}
-                onRelease={() => setAnimate(true)}
+                onRelease={() => {
+                  setAnimate(true);
+                }}
                 onReset={() =>
                   setJoints((p) => ({
                     ...p,
@@ -187,33 +310,31 @@ function Joint({
       return pos;
     }
 
-    // let isDragging = false;
-
     function handleMouseDown() {
       setIsDragging(true);
     }
 
-    function mouseMode(e: MouseEvent) {
+    function handleMouseMove(e: MouseEvent) {
       if (!isDragging) return;
       const { xp, yp } = getDragXY(e);
       onDrag && onDrag(orientation === "vertical" ? xp - position : yp);
     }
 
-    function mouseRelease() {
+    function handleMouseRelease() {
       setIsDragging(false);
       onRelease && onRelease();
     }
 
     elemRef.current.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("mousemove", mouseMode);
-    document.addEventListener("mouseup", mouseRelease);
-    document.addEventListener("mouseleave", mouseRelease);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseRelease);
+    document.addEventListener("mouseleave", handleMouseRelease);
 
     return () => {
       elemRef.current?.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("mousemove", mouseMode);
-      document.removeEventListener("mouseup", mouseRelease);
-      document.removeEventListener("mouseleave", mouseRelease);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseRelease);
+      document.removeEventListener("mouseleave", handleMouseRelease);
     };
   }, [elemRef.current, position, isDragging]);
 
@@ -223,11 +344,11 @@ function Joint({
       ref={elemRef}
       onDoubleClick={() => onReset && onReset()}
       className={cn(
-        "absolute z-10 opacity-0 hover:opacity-100",
+        "absolute z-10",
         animate && "transition-[width,height,top,left, opacity] duration-300",
         orientation === "vertical" &&
           "top-0 bottom-0 w-2 translate-x-[-50%] cursor-col-resize",
-        isDragging && "w-20"
+        isDragging && "w-screen"
       )}
       style={{
         ...(orientation === "vertical" && {
