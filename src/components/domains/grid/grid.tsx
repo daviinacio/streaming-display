@@ -248,11 +248,12 @@ export function Grid({ children, className, ...props }: GridProps) {
                 onRelease={() => {
                   setAnimate(true);
                 }}
-                onReset={() =>
-                  setJoints((p) => ({
-                    ...p,
-                    [i]: 0,
-                  }))
+                onReset={
+                  () => setJoints([])
+                  // setJoints((p) => ({
+                  //   ...p,
+                  //   [i]: 0,
+                  // }))
                 }
               />
             )
