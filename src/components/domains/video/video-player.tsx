@@ -213,61 +213,35 @@ export const Player = memo(function ({
     const iframe = wrapperRef.current.querySelector("iframe");
     if (!iframe) return;
 
+    if (!fit) {
+      iframe.style.minHeight = "";
+      iframe.style.width = "";
+      return;
+    }
+
     function updateIframeHeight() {
       if (!wrapperRef.current || !iframe) return;
-      iframe.style.minHeight = fit
-        ? `${(wrapperRef.current.offsetWidth / 16) * 9}px`
-        : "";
 
-      iframe.style.width = fit
-        ? `${Math.max(
-            wrapperRef.current.offsetWidth,
-            (wrapperRef.current.offsetHeight / 9) * 16
-          )}px`
-        : "";
+      iframe.style.minHeight = `${(wrapperRef.current.offsetWidth / 16) * 9}px`;
+
+      iframe.style.width = `${Math.max(
+        wrapperRef.current.offsetWidth,
+        (wrapperRef.current.offsetHeight / 9) * 16
+      )}px`;
     }
 
-    function delayedUpdateIframeHeight() {
-      for (let i = 1; i < 20; i++) {
-        setTimeout(() => fit && updateIframeHeight(), 20 * i);
-      }
-    }
+    var resizeObserver = new ResizeObserver(() => {
+      updateIframeHeight();
+    });
 
     updateIframeHeight();
-    delayedUpdateIframeHeight();
 
-    // const observer = new MutationObserver(() => {
-    //   updateIframeHeight();
-    // });
+    resizeObserver.observe(wrapperRef.current);
 
-    // observer.observe(gridItemRef.current, {
-    //   attributes: true,
-    //   attributeFilter: ["style"],
-    // });
-
-    document.documentElement.addEventListener(
-      "fullscreenchange",
-      delayedUpdateIframeHeight
-    );
-    window.addEventListener("resize", updateIframeHeight);
     return () => {
-      if (!window) return;
-      window.removeEventListener("resize", updateIframeHeight);
-      document.documentElement.removeEventListener(
-        "fullscreenchange",
-        delayedUpdateIframeHeight
-      );
-      // observer.disconnect();
+      wrapperRef.current && resizeObserver.unobserve(wrapperRef.current);
     };
-  }, [
-    fit,
-    wrapperRef.current,
-    // gridItemRef.current,
-    state.playing,
-    state.maximize,
-    // item,
-    // grid?.count,
-  ]);
+  }, [wrapperRef.current, state.maximize, state.playing, fit]);
 
   useEffect(() => {
     function handleKeyDown(e: globalThis.KeyboardEvent) {

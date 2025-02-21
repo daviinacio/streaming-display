@@ -37,10 +37,9 @@ export function Grid({ children, className, ...props }: GridProps) {
   const pushJointChangeHistory = useCallback(
     (index: number) =>
       setJointChangeHistory((prev) => {
+        if (prev.slice(-1)[0] === index) return prev;
         const result = [...prev].filter((v) => v !== index);
-
-        if (result.slice(-1)[0] !== index) result.push(index);
-
+        result.push(index);
         return result;
       }),
     []
