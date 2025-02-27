@@ -34,6 +34,23 @@ export function Grid({ children, className, ...props }: GridProps) {
     number[]
   >("grid-joint-change-history", []);
 
+  const [shiftPressed, setShiftPressed] = useState(false);
+  const [ctrlPressed, setCtrlPressed] = useState(false);
+
+  useEffect(() => {
+    function handleKeyEvent(e: globalThis.KeyboardEvent) {
+      setShiftPressed(e.shiftKey);
+      setCtrlPressed(e.ctrlKey);
+    }
+
+    document.addEventListener("keydown", handleKeyEvent);
+    document.addEventListener("keyup", handleKeyEvent);
+    return () => {
+      document.removeEventListener("keydown", handleKeyEvent);
+      document.removeEventListener("keyup", handleKeyEvent);
+    };
+  }, []);
+
   const pushJointChangeHistory = useCallback(
     (index: number) =>
       setJointChangeHistory((prev) => {
@@ -212,6 +229,33 @@ export function Grid({ children, className, ...props }: GridProps) {
     return itemsPosition;
   }, [columnsDimensions]);
 
+  const handleDragJoint = useCallback(
+    (index: number, offset: number) => {
+      setAnimate(false);
+      pushJointChangeHistory(index);
+
+      setJoints((p) => {
+        if (ctrlPressed) {
+          return adjustedJoints.map((j, i) => {
+            if (i >= index) return offset;
+            return j;
+          });
+        } else if (shiftPressed) {
+          const length = adjustedJoints.length - index;
+          return adjustedJoints.map((j, i) => {
+            if (i >= index) return (offset / length) * (length - (i - index));
+            return j;
+          });
+        } else {
+          const result = [...p];
+          result[index] = offset;
+          return result;
+        }
+      });
+    },
+    [pushJointChangeHistory, shiftPressed, ctrlPressed, adjustedJoints]
+  );
+
   return (
     <div className={cn("h-full", className)} {...props}>
       <div className="h-full relative group/grid rounded-t-xl" role="grid">
@@ -237,14 +281,7 @@ export function Grid({ children, className, ...props }: GridProps) {
                 position={col.joint.position}
                 offset={col.joint.offset}
                 animate={animate}
-                onDrag={(offset) => {
-                  setAnimate(false);
-                  pushJointChangeHistory(i);
-                  setJoints((p) => ({
-                    ...p,
-                    [i]: offset,
-                  }));
-                }}
+                onDrag={(offset) => handleDragJoint(i, offset)}
                 onRelease={() => {
                   setAnimate(true);
                 }}
@@ -343,6 +380,8 @@ function Joint({
       role="grid-joint"
       ref={elemRef}
       onDoubleClick={() => onReset && onReset()}
+      onClick={(e) => e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
       className={cn(
         "absolute z-10",
         animate && "transition-[width,height,top,left, opacity] duration-300",
