@@ -23,6 +23,7 @@ export type DropAreaProps = Omit<HTMLAttributes<HTMLDivElement>, "onDrop"> & {
   onDrop?: (content: string, position: DropLocation, moving?: boolean) => void;
   onlyCenter?: boolean;
   disabled?: boolean | ((url?: string) => boolean);
+  onDraggingOverStart?: () => void;
 };
 
 const paddingPercentage = 15;
@@ -36,6 +37,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
       onDrop,
       onlyCenter = false,
       disabled = false,
+      onDragOver,
       ...props
     },
     ref
@@ -144,18 +146,19 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
           e.dataTransfer.dropEffect = isDisabled ? "none" : "move";
         }
 
-        if (isDisabled) return;
-
-        dropRef.current?.classList.add("drag-over");
-
         const { x, y } = getDragXY(e);
         const posClass = `drag-pos-${calcDragPosition(x, y)}`;
 
         if (!dropRef.current?.classList.contains(posClass)) {
+          onDragOver && onDragOver(e as any);
           dropRef.current?.classList.remove(
             ...DropLocation.map((dp) => `drag-pos-${dp}`)
           );
         }
+
+        if (isDisabled) return;
+
+        dropRef.current?.classList.add("drag-over");
         dropRef.current?.classList.add(posClass);
       }
 

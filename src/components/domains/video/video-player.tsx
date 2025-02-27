@@ -259,16 +259,16 @@ export const Player = memo(function ({
   const [forcedRefresh, setForcedRefresh] = useState(false);
   useEffect(() => setForcedRefresh(false), [forcedRefresh]);
 
-  const [refreshCouldDown, setRefreshCouldDown] = useState(false);
+  const [refreshCoolDown, setRefreshCoolDown] = useState(false);
   useEffect(() => {
-    setRefreshCouldDown(true);
-    const timeout = setTimeout(() => setRefreshCouldDown(false), 2000);
+    setRefreshCoolDown(true);
+    const timeout = setTimeout(() => setRefreshCoolDown(false), 2000);
     return () => clearTimeout(timeout);
   }, [data, error, isFetching]);
 
   const handleRefresh = useCallback(
     async (...err: any[]) => {
-      if (refreshCouldDown) return;
+      if (refreshCoolDown) return;
       if (err[0] === "force") {
         setForcedRefresh(true);
         await refetch();
@@ -284,7 +284,7 @@ export const Player = memo(function ({
 
       dispatch({ type: "play" });
     },
-    [refetch, refreshCouldDown]
+    [refetch, refreshCoolDown]
   );
 
   useEffect(() => {
@@ -307,7 +307,7 @@ export const Player = memo(function ({
         state.maximize &&
           "[[role=grid]:has(&)_[role=grid-item]>div]:opacity-0 [[role=grid]:has(&)_[role=grid-item]>div]:delay-0 [[role=grid]:has(&)_[role=grid-item]>div]:ease-out !opacity-100"
       )}
-      // disabled={state.maximize}
+      disabled={state.maximize}
       ghost={
         <div
           className={cn(
@@ -344,6 +344,7 @@ export const Player = memo(function ({
       }
     >
       <DropArea
+        onDragOver={() => dispatch({ type: "maximize", value: false })}
         value={url}
         className={cn("pointer-events-auto overflow-hidden p-0")}
         onDrop={(_url, location, moving) => {
@@ -632,7 +633,7 @@ export const Player = memo(function ({
                         title="Refresh link"
                         className={cn(isFetching && "animate-spin")}
                         onClick={() => handleRefresh("force", null)}
-                        disabled={refreshCouldDown || isFetching}
+                        disabled={refreshCoolDown || isFetching}
                       >
                         <ReloadIcon />
                       </ActionButton>
