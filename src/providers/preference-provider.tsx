@@ -39,7 +39,7 @@ export const PreferenceContext = createContext<
   PreferenceContextProps | undefined
 >(undefined);
 
-function deserializePreferences(): Preferences {
+export function deserializePreferences(): Preferences {
   const data = localStorage.getItem(storageKey);
   return data ? JSON.parse(data) : defaultPreferences;
 }

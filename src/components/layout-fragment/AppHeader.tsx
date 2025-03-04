@@ -19,7 +19,7 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
     <header
       {...props}
       className={cn(
-        "h-14 sm:h-16 bg-primary text-white transition-colors",
+        "h-14 sm:h-16 bg-primary text-primary-foreground transition-colors",
         className
       )}
     >
@@ -79,7 +79,7 @@ export function HeaderLink({
   return (
     <Button
       variant="link"
-      className={cn("font-semibold text-white p-0", className)}
+      className={cn("font-semibold text-primary-foreground p-0", className)}
       {...props}
     >
       <a

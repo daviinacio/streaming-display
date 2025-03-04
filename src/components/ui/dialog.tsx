@@ -73,7 +73,7 @@ const DialogHeader = ({
   <div
     className={cn(
       "flex flex-col space-y-0.5 text-center sm:text-left",
-      "bg-primary text-white -mx-6 px-6 -mt-6 py-4",
+      "bg-primary text-primary-foreground -mx-6 px-6 -mt-6 py-4",
       className
     )}
     {...props}
@@ -117,7 +117,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-primary brightness-200", className)}
+    className={cn("text-sm text-primary-foreground/70", className)}
     {...props}
   />
 ));

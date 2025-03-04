@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { DialogProps } from "@radix-ui/react-dialog";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
+import { applyTheme } from "@/lib/theme.ts";
 
 const colorList = {
   green: "142 72% 42%",
@@ -45,26 +46,19 @@ export function ThemeDialog({ children, ...props }: ThemeDialogProps) {
   const colorPrimary = preferences.getItem("color-primary");
 
   useEffect(() => {
-    document.documentElement.style.setProperty("--primary", colorPrimary);
-
-    const colorPrimaryDark = colorPrimary.split(" ").map((c, i) => {
-      if (i !== 2) return c;
-      return `${Math.max(0, parseInt(c) - 10)}%`;
-    });
-    document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", `hsl(${colorPrimaryDark})`);
+    applyTheme({ colorPrimary });
   }, [colorPrimary]);
 
   return (
     <Dialog {...props}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[320px] max-w-[320px]">
+      <DialogContent className="w-full max-w-[320px] h-fit group/dialog">
+      {/* <DialogContent className="w-full sm:max-w-[320px] h-full sm:h-fit group/dialog"> */}
         <DialogHeader>
           <DialogTitle>Customize</DialogTitle>
           <DialogDescription>Change the color palette</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-4 h-full">
           {Object.entries(colorList).map(([name, color]) => (
             <TooltipProvider key={name}>
               <Tooltip delayDuration={0}>
@@ -86,7 +80,7 @@ export function ThemeDialog({ children, ...props }: ThemeDialogProps) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent
-                  className="font-semibold pointer-events-none"
+                  className="font-semibold pointer-events-none hidden group-hover/dialog:flex"
                   style={{
                     backgroundColor: `hsl(${color})`,
                   }}

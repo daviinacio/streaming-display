@@ -34,33 +34,15 @@ Created by daviinacio
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="" />
-    <script>
-      const preferences =
-        JSON.parse(localStorage.getItem("preferences") || "{}") || {};
 
-      // Sets tailwind theme before client render
-      const isBrowserDarkMode = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      ).matches;
-
-      const isDarkMode =
-        preferences.theme === "dark" ||
-        (preferences.theme === "system" && isBrowserDarkMode);
-      window.document.documentElement.classList.add(
-        isDarkMode ? "dark" : "light"
-      );
-
-      // Set custom colors
-      const colorPrimary = preferences["color-primary"] || "142 72% 42%";
-      document.documentElement.style.setProperty("--primary", colorPrimary);
-
-      const colorPrimaryDark = colorPrimary.split(" ").map((c, i) => {
-        if (i !== 2) return c;
-        return `${Math.max(0, parseInt(c) - 10)}%`;
-      });
-      document
-        .querySelector('meta[name="theme-color"]')
-        ?.setAttribute("content", `hsl(${colorPrimaryDark})`);
+    <script type="module">
+        import { applyTheme } from "@/lib/theme.ts";
+        try {
+          applyTheme();
+        }
+        catch(err){
+          alert(err.message)
+        }
     </script>
   </head>
   <body>

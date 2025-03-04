@@ -8,6 +8,7 @@ import React, {
 
 import { usePreference } from "@/hooks/use-preference";
 import { Preferences } from "./preference-provider";
+import { applyTheme } from "@/lib/theme.ts";
 
 type Theme = Preferences["theme"];
 
@@ -64,9 +65,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   }, [theme, isBrowserDarkMode]);
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(isDarkMode ? "dark" : "light");
+    applyTheme({ isDarkMode });
   }, [isDarkMode]);
 
   const toggleDarkMode = useCallback(() => {

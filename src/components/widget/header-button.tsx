@@ -22,7 +22,7 @@ export function HeaderButton({
           <Button
             className={cn(
               "p-2 rounded-full hover:md:bg-black/10 active:bg-black/10",
-              "group/button text-white active:text-white hover:md:text-white",
+              "group/button text-primary-foreground active:text-white hover:md:text-white",
               className
             )}
             variant="ghost"
