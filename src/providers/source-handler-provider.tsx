@@ -80,7 +80,11 @@ export function SourceHandlerProvider({
 
   const handleFindState = useCallback<SourceHandlerContextProps["findHandler"]>(
     (url) => {
-      return handlers.find((h) => findWildcard(h.urlMatch, url)) || null;
+      return (
+        handlers.find((h) => h.urlMatch.includes(url)) ||
+        handlers.find((h) => findWildcard(h.urlMatch, url)) ||
+        null
+      );
     },
     [handlers]
   );
