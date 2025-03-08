@@ -44,7 +44,11 @@ const editorTypescriptDefinition = `
 
 const defaultResolverJs = `const { url } = $params;
 
-if (condition) throw new Error([
+const metadata = await fetch('https:// ... ', {
+  method: 'post'
+});
+
+if (metadata.status !== 200) throw new Error([
   "Error",
   "Message line 1",
   "Message line 2",
@@ -54,6 +58,7 @@ if (condition) throw new Error([
 $result = {
   
 };
+
 `;
 
 const SourceHandlerSchema = z.object({

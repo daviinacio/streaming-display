@@ -37,10 +37,10 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
               Open v1
               <ExternalLinkIcon className="w-4 h-4" />
             </HeaderLink>
-            <HeaderLink to="https://github.com/daviinacio/streaming-display">
+            {/* <HeaderLink to="https://github.com/daviinacio/streaming-display">
               Github
               <ExternalLinkIcon className="w-4 h-4" />
-            </HeaderLink>
+            </HeaderLink> */}
           </div>
         </div>
         <div className="flex items-center sm:gap-1">
