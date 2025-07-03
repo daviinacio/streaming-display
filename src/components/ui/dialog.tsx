@@ -48,6 +48,7 @@ const DialogContent = React.forwardRef<
           className
         )}
         {...props}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         {children}
         <DialogPrimitive.Close className="group absolute right-3 top-3 p-1 rounded-full ring-offset-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent text-white">
