@@ -11,7 +11,7 @@ const buttonVariants = cva(
     "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
     "disabled:pointer-events-none disabled:opacity-50",
-    "select-none gap-2"
+    "select-none gap-2",
   ),
   {
     variants: {
@@ -42,11 +42,12 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   isLoading?: boolean;
@@ -62,9 +63,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       disabled,
       isLoading = false,
+      type = "button",
       ...props
     },
-    ref
+    ref,
   ) => {
     const Comp = asChild ? Slot : "button";
 
@@ -73,14 +75,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const isShowLoading = React.useMemo(() => {
       if (isLoading) return true;
       if (!form) return false;
-      return form.formState.isSubmitting && props.type === "submit";
+      return form.formState.isSubmitting && type === "submit";
     }, [form, isLoading]);
 
     const isButtonDisabled = React.useMemo(() => {
       if (disabled !== undefined) return disabled;
       if (!form) return false;
       return (
-        (!form.formState.isDirty && props.type === "submit") ||
+        (!form.formState.isDirty && type === "submit") ||
         form.formState.isSubmitting
       );
     }, [form, disabled]);
@@ -90,6 +92,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={isButtonDisabled || isShowLoading}
+        type={type}
         {...props}
       >
         {asChild ? (
@@ -102,7 +105,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
       </Comp>
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

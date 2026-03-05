@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DraggableDialogContent,
   Input,
   InputTextList,
   ScrollArea,
@@ -22,7 +23,7 @@ import {
   SourceHandlerResult,
   SourceHandlerResultRequired,
 } from "@/lib/types";
-import { normalizeIdentifier } from "@/lib/utils";
+import { cn, normalizeIdentifier } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlayIcon } from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect, useMemo } from "react";
@@ -30,6 +31,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { RunSourceHandlerDialog } from "./source-handler-run-dialog";
+import Draggable from "react-draggable";
 
 const resolverOpening = "//###---OPEN---###//";
 const resolverClosing = "//###---CLOSE---###//";
@@ -88,11 +90,11 @@ const defaultValues: Partial<SourceHandlerSchema> = {
   label: "",
   id: "",
   allow: {
-    maximize: false,
-    pip: false,
-    refresh: false,
-    volume: false,
-    copySourceUrl: false,
+    maximize: true,
+    pip: true,
+    refresh: true,
+    volume: true,
+    copySourceUrl: true,
   },
 };
 
@@ -196,8 +198,9 @@ export function SourceHandlerEditDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent
-        className="sm:max-w-[700px] h-full sm:h-[700px]"
+
+      <DraggableDialogContent
+        className={cn("sm:max-w-[700px] h-full sm:h-[700px]")}
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(event) => event.preventDefault()}
       >
@@ -255,6 +258,24 @@ export function SourceHandlerEditDialog({
                   className="h-full"
                   action={
                     <div className="flex items-center gap-2">
+                      <RunSourceHandlerDialog sourceHandler={form.watch()}>
+                        <Button
+                          variant="ghost"
+                          className="p-0 pr-2 pl-1 h-fit gap-1"
+                        >
+                          <PlayIcon className="size-4 text-primary" />
+                          <span className="text-sm">Run</span>
+                        </Button>
+                      </RunSourceHandlerDialog>
+                      <RunSourceHandlerDialog sourceHandler={form.watch()}>
+                        <Button
+                          variant="ghost"
+                          className="p-0 pr-2 pl-1 h-fit gap-1"
+                        >
+                          <PlayIcon className="size-4 text-primary" />
+                          <span className="text-sm">Run</span>
+                        </Button>
+                      </RunSourceHandlerDialog>
                       <RunSourceHandlerDialog sourceHandler={form.watch()}>
                         <Button
                           variant="ghost"
@@ -340,7 +361,7 @@ export function SourceHandlerEditDialog({
             </DialogClose>
           </DialogFooter>
         </Form>
-      </DialogContent>
+      </DraggableDialogContent>
     </Dialog>
   );
 }

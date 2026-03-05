@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v3";
 
 export type JavascriptSchemaProps = {
   requiredReturns?: string[];
@@ -33,14 +33,14 @@ export function JavascriptSchema({
           ...nonCommentedJs
             .split("$result.")
             .slice(1)
-            .map((p) => p.split("=")[0].trim())
+            .map((p) => p.split("=")[0].trim()),
         );
       }
 
       const resultObjectDefinitionIndex = Math.max(
         ...["$result =", "$result=" /*, "return"*/].map((d) =>
-          nonCommentedJs.indexOf(d)
-        )
+          nonCommentedJs.indexOf(d),
+        ),
       );
 
       if (resultObjectDefinitionIndex !== -1) {
@@ -55,7 +55,7 @@ export function JavascriptSchema({
       }
 
       const missingAttributes = requiredReturns.filter(
-        (at) => !returnedAttributes.includes(at)
+        (at) => !returnedAttributes.includes(at),
       );
 
       if (missingAttributes.length > 0) {

@@ -6,11 +6,19 @@ import {
   ToggleFitVideoButton,
 } from "@/components/widget";
 import { cn } from "@/lib/utils";
-import { ExternalLinkIcon, FileCogIcon, PaletteIcon } from "lucide-react";
+import {
+  ExternalLinkIcon,
+  FileCogIcon,
+  PaletteIcon,
+  Plug2Icon,
+  PlugIcon,
+} from "lucide-react";
 import { HTMLAttributes } from "react";
 import { ThemeDialog } from "../domains/customize/theme-dialog";
 import { SourceHandlerListDialog } from "../domains/source-handlers/source-handler-list-dialog";
 import { Button, ButtonProps } from "../ui";
+import { PluginEditorDialog } from "@/features/plugin/components/PluginEditorDialog";
+import { PluginListDialog } from "@/features/plugin/components/PluginListDialog";
 
 export type AppHeaderProps = HTMLAttributes<HTMLHeadElement>;
 
@@ -20,14 +28,14 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
       {...props}
       className={cn(
         "h-14 sm:h-16 bg-primary text-primary-foreground transition-colors",
-        className
+        className,
       )}
     >
       <div
         className={cn(
           "flex justify-between items-center",
           "gap-2 sm:gap-4 h-full",
-          "pl-4 pr-2"
+          "pl-4 pr-2",
         )}
       >
         <div className="flex items-center gap-2 sm:gap-4">
@@ -46,13 +54,21 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
         <div className="flex items-center sm:gap-1">
           <ToggleFitVideoButton title="Fit video" />
 
-          <SourceHandlerListDialog>
+          {/* <SourceHandlerListDialog>
             <span>
               <HeaderButton title="Source handlers">
                 <FileCogIcon />
               </HeaderButton>
             </span>
-          </SourceHandlerListDialog>
+          </SourceHandlerListDialog> */}
+
+          <PluginListDialog>
+            <HeaderButton title="Plugins">
+              <Plug2Icon className="rotate-45" />
+            </HeaderButton>
+          </PluginListDialog>
+
+          <ThemeButton title="Theme" />
 
           <ThemeDialog>
             <span>
@@ -61,8 +77,6 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
               </HeaderButton>
             </span>
           </ThemeDialog>
-
-          <ThemeButton title="Theme" />
           <FullscreenButton title="Fullscreen" />
         </div>
       </div>

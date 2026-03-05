@@ -63,6 +63,7 @@ import {
   videoPlayerReducer,
   VideoPlayerState,
 } from "./video-player-reducer";
+import { ReactPlayerProps } from "react-player/types";
 
 const runtimeState = ["maximize", "playing"] as const;
 
@@ -143,6 +144,7 @@ export const Player = memo(function ({
   state,
   dispatch,
 }: PlayerProps) {
+  const playerRef = useRef<ReactPlayerProps>(null);
   const sh = useSourceHandlers();
   const handler = useMemo(() => sh.findHandler(url), [sh, url]);
   const preferences = usePreference();
@@ -291,6 +293,10 @@ export const Player = memo(function ({
     error && dispatch({ type: "maximize", value: false });
   }, [error]);
 
+  useEffect(() => {
+    console.log(playerRef);
+  }, [playerRef]);
+
   const allowMaximize =
     handler?.allow?.maximize && !error && playerCount && playerCount > 1;
 
@@ -390,7 +396,7 @@ export const Player = memo(function ({
                 <div
                   key="player"
                   className={cn(
-                    "h-full w-full pointer-events-none",
+                    "h-full w-full pointer-events-all",
                     state.pip && "hidden",
                     fit && "[&_video]:object-cover",
                     "[&_iframe]:absolute",
@@ -403,7 +409,7 @@ export const Player = memo(function ({
                     error && "blur-sm"
                   )}
                 >
-                  <div
+                  {/* <div
                     key="spinner"
                     className={cn(
                       "absolute inset-0 flex items-center justify-center",
@@ -411,29 +417,30 @@ export const Player = memo(function ({
                     )}
                   >
                     <FadeLoader color="white" />
-                  </div>
+                  </div> */}
                   <ReactPlayer
                     key="react-player"
-                    url={data.sourceUrl}
-                    playing={true}
-                    className={cn("h-full w-full pointer-events-none relative")}
-                    stopOnUnmount={false}
+                    src={data.sourceUrl}
+                    // playing={true}
+                    className={cn("h-full w-full pointer-events-all relative")}
+                    // stopOnUnmount={false}
                     width="100%"
                     height="100%"
                     onStart={() => dispatch({ type: "play" })}
                     onPause={() => dispatch({ type: "pause" })}
                     onPlay={() => dispatch({ type: "play" })}
-                    onEnablePIP={() => dispatch({ type: "pip", value: true })}
-                    onDisablePIP={() => dispatch({ type: "pip", value: false })}
+                    // onEnablePIP={() => dispatch({ type: "pip", value: true })}
+                    // onDisablePIP={() => dispatch({ type: "pip", value: false })}
                     onEnded={(...args) => handleRefresh(...args)}
                     onError={(...args) => handleRefresh(...args)}
-                    onBufferEnd={(...args) => handleRefresh(...args)}
+                    // onBufferEnd={(...args) => handleRefresh(...args)}
                     controls={false}
                     config={{
                       youtube: {
-                        playerVars: { showinfo: 1 },
+                        // playerVars: { showinfo: 1 },
                       },
                     }}
+                    // ref={playerRef}
                     {...exclude(state, "refetchInterval", "maximize")}
                     volume={state.muted ? 0 : state.volume}
                     muted={false}

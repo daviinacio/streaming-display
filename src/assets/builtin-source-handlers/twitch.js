@@ -17,7 +17,7 @@ export default {
     $result = {
       title: channelName,
       status: "online",
-      sourceUrl: url,
+      sourceUrl: url //`https://player.twitch.tv/?channel=${channelName}&amp;parent=${location.hostname}&amp;parent=${location.hostname}`,
     }
 
     //###---CLOSE---###//

@@ -11,6 +11,11 @@ export function cn(...inputs: ClassValue[]) {
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+// Number utilities
+export function randomInteger(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 // JSX utilities
 export function joinJSX(children: ReactElement[], separator: ReactElement) {
   return children
@@ -18,7 +23,7 @@ export function joinJSX(children: ReactElement[], separator: ReactElement) {
       React.cloneElement(child as React.ReactElement, {
         key: child.key || i,
         ...child.props,
-      })
+      }),
     )
     .reduce((acc, child, i) => {
       if (i === 0) return [child];
@@ -38,7 +43,7 @@ export const distinct =
     a.findIndex((ait) =>
       typeof it === "object" && typeof it === "object" && it && keys.length > 0
         ? keys.every((key) => ait[key] === it[key])
-        : ait === it
+        : ait === it,
     ) === i;
 
 export function exclude<O extends object, KA extends Array<keyof O>>(
@@ -55,7 +60,7 @@ export function exclude<O extends object, KA extends Array<keyof O>>(
 
 export function findWildcard(list: string[] | undefined, search: string) {
   return (list || []).find((it) =>
-    it.split("*").every((its) => search.indexOf(its) >= 0)
+    it.split("*").every((its) => search.indexOf(its) >= 0),
   );
 }
 

@@ -4,8 +4,11 @@ import {
 } from "@/components/domains/drag-n-drop/drop-area";
 import { Grid } from "@/components/domains/grid/grid";
 import { VideoPlayer } from "@/components/domains/video/video-player";
+import { usePlugin } from "@/features/plugin";
+import { Stream } from "@/features/stream/components/Stream";
+// import useAlertDialog from "@/hooks/use-alert-dialog";
 import { useMultiInstanceDrag } from "@/hooks/use-multi-instance-drag";
-import { useSourceHandlers } from "@/hooks/use-source-handlers";
+// import { useSourceHandlers } from "@/hooks/use-source-handlers";
 import { useTemporaryState } from "@/hooks/use-temporary-state";
 import { GridItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -13,10 +16,14 @@ import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function GridViewPage() {
-  const sh = useSourceHandlers();
+  // const alert = useAlertDialog();
+  // const sh = useSourceHandlers();
+
+  const { findPluginByUrl } = usePlugin();
+
   const [gridItems, setGridItems] = useTemporaryState<GridItem[]>(
     "grid-items",
-    []
+    [],
   );
 
   const [gridItemsHistory, setGridItemsHistory] = useTemporaryState<
@@ -25,7 +32,7 @@ export default function GridViewPage() {
 
   const [_, setGridItemsHistoryUndoOffset] = useTemporaryState<number>(
     "grid-items-history-undo-offset",
-    0
+    0,
   );
 
   useEffect(() => {
@@ -58,7 +65,7 @@ export default function GridViewPage() {
       const items =
         gridItemsHistory.slice(
           -(offset + 1),
-          offset > 0 ? -offset : undefined
+          offset > 0 ? -offset : undefined,
         )[0] || [];
       setGridItems(items);
       return offset;
@@ -71,7 +78,7 @@ export default function GridViewPage() {
       offset--;
       const items = gridItemsHistory.slice(
         -(offset + 1),
-        offset > 0 ? -offset : undefined
+        offset > 0 ? -offset : undefined,
       )[0];
       setGridItems(items);
       return offset;
@@ -119,37 +126,63 @@ export default function GridViewPage() {
   //   }, 100);
   // }, []);
 
-  useEffect(() => {
-    let wakeLock: WakeLockSentinel | undefined = undefined;
+  // useEffect(() => {
+  //   let wakeLock: WakeLockSentinel | undefined = undefined;
 
-    navigator.wakeLock.request("screen").then((value) => {
-      console.debug("Wake locked");
-      wakeLock = value;
-    });
+  //   navigator.wakeLock.request("screen").then((value) => {
+  //     console.debug("Wake locked");
+  //     wakeLock = value;
+  //   });
 
-    return () => {
-      wakeLock &&
-        wakeLock.release().then(() => console.debug("Wake lock released"));
-    };
-  }, []);
+  //   return () => {
+  //     wakeLock &&
+  //       wakeLock.release().then(() => console.debug("Wake lock released"));
+  //   };
+  // }, []);
+
+  // useEffect(() => {
+  //   // window.onbeforeunload = async function (e) {
+  //   //   // console.log("test");
+  //   //   // await alert.confirm("Test", "test");
+  //   //   return "";
+  //   // };
+  //   async function handleKeyDown(e: globalThis.KeyboardEvent) {
+  //     if (
+  //       ((e.metaKey || e.ctrlKey) && e.key === "r") ||
+  //       ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "r")
+  //     ) {
+  //       e.preventDefault();
+  //       if (
+  //         await alert.confirm(
+  //           "Refresh the page",
+  //           "You might lose some data, are you sure you want to refresh this page?"
+  //         )
+  //       ) {
+  //         location.reload();
+  //       }
+  //     }
+  //   }
+  //   document.addEventListener("keydown", handleKeyDown);
+  //   return () => document.removeEventListener("keydown", handleKeyDown);
+  // }, []);
 
   const freeUpRow = useCallback(
     (
       gridItems: GridItem[],
       column: number,
       row: number,
-      direction: boolean
+      direction: boolean,
     ) => {
       gridItems
         .filter(
           (gi) =>
-            gi.column === column && (direction ? gi.row >= row : gi.row <= row)
+            gi.column === column && (direction ? gi.row >= row : gi.row <= row),
         )
         .forEach((gi) => {
           gi.row += direction ? 1 : -1;
         });
     },
-    []
+    [],
   );
 
   const freeUpColumn = useCallback(
@@ -160,7 +193,7 @@ export default function GridViewPage() {
           gi.column += direction ? 1 : -1;
         });
     },
-    []
+    [],
   );
 
   const handleRemove = useCallback((url: string) => {
@@ -176,7 +209,7 @@ export default function GridViewPage() {
       url: string,
       location: DropLocation,
       currentUrl?: string,
-      moving?: boolean
+      moving?: boolean,
     ) => {
       setGridItems((prev) => {
         const gridItems = prev.map((p) => ({ ...p }));
@@ -186,9 +219,9 @@ export default function GridViewPage() {
           return gridItems;
         }
 
-        const handler = sh.findHandler(url);
-        if (!handler) {
-          toast.error("There's no handler available for this URL");
+        const plugin = findPluginByUrl(url);
+        if (!plugin) {
+          toast.error("There's no plugin available for this URL");
           return gridItems;
         }
 
@@ -268,7 +301,7 @@ export default function GridViewPage() {
         return gridItems;
       });
     },
-    [sh, sh.custom]
+    [findPluginByUrl],
   );
 
   useMultiInstanceDrag({
@@ -302,19 +335,20 @@ export default function GridViewPage() {
         onlyCenter={true}
         className={cn(
           "bg-background rounded-t-xl p-0 shadow-md shadow-black",
-          gridItems.length === 0 && "p-1"
+          gridItems.length === 0 && "p-1",
         )}
         disabled={gridItems.length > 0}
       >
         {gridItems.length > 0 && (
           <Grid>
             {gridItems.map((it) => (
-              <VideoPlayer
-                key={it.url}
-                item={it}
-                onDrop={handleDrop}
-                onRemove={handleRemove}
-              />
+              <Stream key={it.url} url={it.url} />
+              // <VideoPlayer
+              //   key={it.url}
+              //   item={it}
+              //   onDrop={handleDrop}
+              //   onRemove={handleRemove}
+              // />
             ))}
           </Grid>
         )}

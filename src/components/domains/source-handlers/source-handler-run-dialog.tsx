@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DraggableDialogContent,
   Input,
 } from "@/components/ui";
 import { Form, FormField } from "@/components/ui/form";
@@ -119,7 +120,10 @@ export function RunSourceHandlerDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
 
-      <DialogContent className="sm:max-w-[400px] h-full sm:h-[500px]">
+      <DraggableDialogContent
+        className="sm:max-w-[400px] h-full sm:h-[500px]"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Run</DialogTitle>
           <DialogDescription>Test the current implementation</DialogDescription>
@@ -160,7 +164,7 @@ export function RunSourceHandlerDialog({
             </DialogClose>
           </DialogFooter>
         </Form>
-      </DialogContent>
+      </DraggableDialogContent>
     </Dialog>
   );
 }

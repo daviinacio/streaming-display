@@ -53,18 +53,18 @@ function Form<D extends FieldValues>({
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = {
   name: TName;
 };
 
 const FormFieldContext = React.createContext<FormFieldContextValue>(
-  {} as FormFieldContextValue
+  {} as FormFieldContextValue,
 );
 
 const FormFieldBase = <
   TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
   ...props
 }: ControllerProps<TFieldValues, TName>) => {
@@ -105,7 +105,7 @@ function FormField<D extends FieldValues>({
   // });
 
   React.useEffect(() => {
-    if (!label || isMandatory) return;
+    // if (!label || isMandatory) return;
 
     // if (form.control._fields[name] && form.control._fields[name]?._f) {
     //   form.control._fields[name]._f.value = 13;
@@ -117,13 +117,14 @@ function FormField<D extends FieldValues>({
 
     form.control._executeSchema([name]).then((r) => {
       const type = r.errors[name as keyof typeof r.errors]?.type;
+      console.log(type);
       if (!type) return;
 
       // console.log("required", name, type);
       setIsMandatory(
         ["required", "too_small", "custom", "invalid_type"].includes(
-          type as string
-        )
+          type as string,
+        ),
       );
     });
   }, [form.control, name, label, fieldValue, isMandatory]);
@@ -157,7 +158,7 @@ function FormField<D extends FieldValues>({
               "grid grid-cols-4 items-center gap-4 relative",
             warning && "field-warning",
             "flex-1",
-            className
+            className,
           )}
         >
           {(label || action) && !inlineLabel && (
@@ -172,7 +173,7 @@ function FormField<D extends FieldValues>({
                       className={cn(
                         "text-destructive ml-1 absolute top-0",
                         "group-[.field-warning]:text-warning",
-                        "group-[.field-error]:text-destructive"
+                        "group-[.field-error]:text-destructive",
                       )}
                     >
                       *
@@ -209,6 +210,15 @@ function FormField<D extends FieldValues>({
                       form.trigger(name);
                     },
                   }),
+                  ...(childrenName === "Select" && {
+                    onValueChange: (value: string) => {
+                      // @ts-ignore
+                      form.setValue(name, value, {
+                        shouldDirty: true,
+                      });
+                      form.trigger(name);
+                    },
+                  }),
                   label: String(label),
                   disabled:
                     children.props.disabled ||
@@ -218,7 +228,7 @@ function FormField<D extends FieldValues>({
                   className: cn(
                     children.props.className,
                     // @ts-ignore
-                    form.isFetching && "invisible"
+                    form.isFetching && "invisible",
                   ),
                 })}
               </FormControl>
@@ -267,7 +277,7 @@ type FormItemContextValue = {
 };
 
 const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue
+  {} as FormItemContextValue,
 );
 
 const FormItem = React.forwardRef<
@@ -284,7 +294,7 @@ const FormItem = React.forwardRef<
         className={cn(
           "group",
           error && "field-error",
-          error ? className?.replace("field-warning", "") : className
+          error ? className?.replace("field-warning", "") : className,
         )}
         {...props}
       />
@@ -369,7 +379,7 @@ const FormMessage = React.forwardRef<
         "text-[0.8rem] font-medium",
         "group-[.field-warning]:text-warning",
         "group-[.field-error]:text-destructive",
-        className
+        className,
       )}
       {...props}
     >
@@ -403,7 +413,7 @@ const FormMessageTooltip = React.forwardRef<
       text,
       ...props
     },
-    ref
+    ref,
   ) => {
     const { error, formMessageId } = useFormField();
     const errorMessage = error ? String(error?.message) : "";
@@ -453,7 +463,7 @@ const FormMessageTooltip = React.forwardRef<
               "group-[.field-error]:bg-destructive",
               type === "normal" && "text-foreground",
               type === "compact" &&
-                "px-2 py-[2px] text-[0.6rem] leading-[0.8rem] text-white"
+                "px-2 py-[2px] text-[0.6rem] leading-[0.8rem] text-white",
             )}
           >
             <p
@@ -468,7 +478,7 @@ const FormMessageTooltip = React.forwardRef<
         </Tooltip>
       </TooltipProvider>
     );
-  }
+  },
 );
 FormMessageTooltip.displayName = "FormMessageTooltip";
 

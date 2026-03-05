@@ -6,6 +6,8 @@ import { TemporaryStateProvider } from "@/providers/temporary-state-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { PropsWithChildren } from "react";
 import { SourceHandlerProvider } from "./source-handler-provider";
+import { PluginProvider } from "@/features/plugin/hooks/use-plugin";
+import { HotkeysProvider } from "@tanstack/react-hotkeys";
 
 export function Providers({ children }: PropsWithChildren) {
   return (
@@ -15,7 +17,9 @@ export function Providers({ children }: PropsWithChildren) {
           <ThemeProvider defaultTheme="system">
             <AlertDialogProvider>
               <ReactQueryProvider>
-                {children}
+                <HotkeysProvider>
+                  <PluginProvider>{children}</PluginProvider>
+                </HotkeysProvider>
                 <Toaster position="top-right" duration={2000} />
               </ReactQueryProvider>
             </AlertDialogProvider>

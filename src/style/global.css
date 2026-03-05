@@ -130,6 +130,11 @@ img {
   z-index: 20;
 }
 
-[role=dialog][data-state=open]:not(:has(~ [role=dialog][data-state=open])) {
+[role=dialog][data-state=open]:not(:has(~ [role=dialog][data-state=open]:not([data-draggable]))) {
   z-index: 50;
+}
+
+[role=dialog][data-draggable] {
+  pointer-events: all !important;
+  will-change: transform;
 }

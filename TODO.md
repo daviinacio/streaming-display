@@ -43,17 +43,163 @@
   - [ ] In private stream
   - [ ] Offline
 
-**Version 1.2**
 
-- [ ] Implement streaming pools
-  - [ ] `I001` Implement a popup with a list of streaming pools
-  - [ ] Implement button to save current arrangement as a streaming pool `I002`.
-  - [ ] Implement button to open a streaming pool
-  - [ ] `I002` Create popup to edit a streaming pool
-    - [ ] Implement weight systems for streamings
-    - [ ] Implement drag and drop
-      - [ ] Drag as a link
-      - [ ] Drop: New item to the streaming pool
+**Version 2.0.0**
+- [x] Built-in and custom source handlers
+  - [x] Source handlers handles with specific URLs in order to obtain its metadata required for displaying the streaming video.
+  - [x] Custom handlers can be created through modern editor, and can be tested before saving.
+  - [x] Custom handlers are stored in localStorage.
+  - [x] Custom handlers expands the software capabilities.
+- [x] URL drag-n-drop
+- [x] Multiple instances
+- [x] Move streamings through different instances
+- [x] Draggable video grid.
+- [x] Standardized video controls
+- [x] Dark theme
+  - [x] Follows the system theme changing if it matches with the current system color schema.
+- [x] Fully responsible
+- [x] Customize color palette
+- [x] Resize grid
+  - [x] Disable grid animation on moving handles
+  - [x] Create a virtual handles for columns and rows
+    - [x] Column handles
+    - [ ] ~~Row handles~~
+      - [ ] ~~Help to select specific height (depending on the current grid state)~~
+        - [ ] ~~Ex: 2/3, 3/4, etc...~~
+
+
+**Version 2.1.0**
+- [ ] Remove link to version 1.
+- [ ] Add a help popup
+  - [ ] Show keyboard shortcuts
+  - [ ] Show tips
+- [ ] Create a flag, editable
+- [ ] Plugin capabilities
+  - [ ] Plugin components
+    - [ ] Player
+      - Renders everything related to a player and handles source url, it will replace source handlers.
+      - 
+
+
+**Examples**
+
+```tsx
+// TwitchPlugin / Player
+
+export default function TwitchPlayer(){
+  // Source Handler
+  // ...
+
+  // Player
+  return (
+    <div style={...}>
+      <div style={...}>
+        <HudControl position="titl`e" />
+      </div>
+      <iframe src={url} />
+    </div>
+  )
+}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ```tsx
+function TwitchPlugin() {
+  // Source handler
+  const sourceUrl = "...";
+  
+  // Player
+  return (
+    <DefaultPlayer
+      sourceUrl={sourceUrl}
+      hud={false || {
+        title: true,
+        playback: false,
+        progress: false
+        tools: false,
+      }}
+      title={modelName}
+      url={url}
+    />
+  )
+}
+```
+
+```tsx
+// Mandatory named function
+function DownloadButton() {
+  const [online, setOnline] = React.useState(false);
+
+  React.useEffect(() => {
+    ...
+  }, [])
+
+  function handleDownload(){
+    ...
+  }
+  
+  // Player
+  return <>
+    <HudControl position="title" visible="focus|blur|always">
+      <button
+        onClick={handleDownload}
+        style={{
+          width: 16,
+          heigh: 16
+        }
+      />
+    </HudControl>
+  </>
+}
+```
+
+```tsx
+// Mandatory named function
+function TwitchPlayer() {
+  // Player
+  return (
+    <div>
+      <div>
+        // If it has no children, i became the renderer.
+        <HudControl position="title" />
+      </div>
+
+      // Render another element of the same component
+      <Test />
+
+      // Render a element of another component
+      <DownloadButton />
+    </div>
+  )
+}
+
+// Functions name cannot repeat inside a plugin
+function Test(){
+  return <div />
+}
+``` -->
+
+
+
+**Backlog**
+- [ ] Source handler response flag to useIframe
+- [ ] Reset query on handler update
+- [ ] Encrypt exported source handlers
+- [ ] Import source handler
+- [ ] Do not listen to key press if its not at the grid.
+- [ ] Implement picture-in-picture. (unstable). Ref: https://deepak-mondal.medium.com/using-document-picture-in-picture-with-react-dab900dcc23c
+- [ ] Implement 'do not show again' to confirm dialogs. Idea: `notAskAgainId` as numeric value
 - [ ] Refactor m3u8 streaming components
   - [ ] Refactor VideoWrapper
   - [ ] Refactor GenericVideo
@@ -72,32 +218,59 @@
   - [ ] Define a count of streaming to be displayed at time.
   - [ ] Always priorize streamings with more weight.
   - [ ] Once a streaming become unavailable, it should bring other to replace it.
+- [ ] Plugins
+  - [ ] Allow users to create, import and export plugins
+  - [ ] Plugins are able to add extra functionalities to the app
+  - [ ] Plugins can create and manage visual elements in video tiles
+  - [ ] Current functionalities will be converted to built-in plugins
+    - [ ] Picture-in-picture
+    - [ ] Maximize
+    - [ ] Copy SourceUrl
+    - [ ] Refresh
+    - [ ] Volume
+  - [ ] Plugin can be for video, or for the whole app
+  - [ ] Add a section to source handler screen to enable plugins.
+- [ ] User-Data
+- [ ] Download Stream through the page <depends-on: plugin>
 
-**Backlog**
+### Streaming Buckets
+**Previous backlog**
+- [ ] Implement streaming buckets
+  - [ ] `I001` Implement a popup with a list of streaming buckets
+  - [ ] Implement button to save current arrangement as a streaming bucket `I002`.
+  - [ ] Implement button to open a streaming bucket
+  - [ ] `I002` Create popup to edit a streaming bucket
+    - [ ] Implement weight systems for streamings
+    - [ ] Implement drag and drop
+      - [ ] Drag as a link
+      - [ ] Drop: New item to the streaming bucket
 
-- [ ] Implement picture-in-picture. (unstable). Ref: https://deepak-mondal.medium.com/using-document-picture-in-picture-with-react-dab900dcc23c
-- [ ] Implement 'do not show again' to confirm dialogs. Idea: `notAskAgainId` as numeric value
+**2025-12-13**
+- [ ] Twitch Chat
+  - https://www.twitch.tv/embed/:channel-name/chat?parent=:site-domain
+- [ ] 
 
 
-**Version 2.0**
-- [x] Built-in and custom source handlers
-  - [x] Source handlers handles with specific URLs in order to obtain its metadata required for displaying the streaming video.
-  - [x] Custom handlers can be created through modern editor, and can be tested before saving.
-  - [x] Custom handlers are stored in localStorage.
-  - [x] Custom handlers expands the software capabilities.
-- [x] URL drag-n-drop
-- [x] Multiple instances
-- [ ] Move streamings through different instances
-- [ ] Draggable video grid.
-- [x] Standardized video controls
-- [x] Dark theme
-  - [x] Follows the system theme changing if it matches with the current system color schema.
-- [x] Fully responsible
-- [x] Customize color palette
-- [ ] Resize grid
-  - [ ] Disable grid animation on moving handles
-  - [ ] Create a virtual handles for columns and rows
-    - [ ] Column handles
-    - [ ] Row handles
-      - [ ] Help to select specific height (depending on the current grid state)
-        - [ ] Ex: 2/3, 3/4, etc...
+### Optimize Source Handlers
+- [ ] Avoid DOS by scheduling refetch as groups
+
+## Standard Streaming Display Backend
+- [ ] Bypass CORS on retrieving streaming details
+- [ ] Proxy Twitch Stream
+- [ ] 
+
+
+
+
+### Concepts
+- Source Handler
+  - Handle url to retrieve the required metadata for playing the content.
+- Wanted features
+  - Extend the app capabilities
+    - Download
+
+
+- URL handling
+- Player Component
+  - Player HUD
+  - Player Controls

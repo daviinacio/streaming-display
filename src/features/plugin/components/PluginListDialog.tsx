@@ -19,34 +19,31 @@ import {
   TooltipTrigger,
 } from "@/components/ui";
 import useAlertDialog from "@/hooks/use-alert-dialog";
-import { useSourceHandlers } from "@/hooks/use-source-handlers";
-import { SourceHandler } from "@/lib/types";
 import { cn, downloadUrl } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
 import {
   EyeOffIcon,
   FileDownIcon,
   PencilIcon,
+  Plug2Icon,
   PlusCircleIcon,
   TrashIcon,
 } from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { SourceHandlerEditDialog } from "./source-handler-edit-dialog";
-import Draggable from "react-draggable";
+import { Plugin, usePlugin } from "../hooks/use-plugin";
+import { PluginEditorDialog } from "./PluginEditorDialog";
 
-export type SourceHandlerListDialogProps = PropsWithChildren;
+export type PluginListDialogProps = PropsWithChildren;
 
-export function SourceHandlerListDialog({
-  children,
-}: SourceHandlerListDialogProps) {
-  const sh = useSourceHandlers();
+export function PluginListDialog({ children }: PluginListDialogProps) {
+  const { list, remove } = usePlugin();
   const [open, setOpen] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
 
   const alert = useAlertDialog();
 
-  const [sourceHandlerEdit, setSourceHandlerEdit] = useState({
+  const [pluginEditDialog, setPluginEditDialog] = useState({
     id: undefined as undefined | string,
     open: false,
   });
@@ -56,7 +53,7 @@ export function SourceHandlerListDialog({
   }, [open]);
 
   const handleCreate = useCallback(() => {
-    setSourceHandlerEdit({
+    setPluginEditDialog({
       id: undefined,
       open: true,
     });
@@ -66,45 +63,32 @@ export function SourceHandlerListDialog({
     console.log("view", `'${id}'`);
   }, []);
 
-  const handleEdit = useCallback(
-    (id: string) => {
-      setSourceHandlerEdit({
-        id,
-        open: true,
-      });
-    },
-    [setSourceHandlerEdit]
-  );
+  const handleEdit = useCallback((id: string) => {
+    setPluginEditDialog({
+      id,
+      open: true,
+    });
+  }, []);
 
   const handleDelete = useCallback(
     async (id: string) => {
-      if (
-        !(await alert.confirm(
-          "Delete source handler",
-          "Are you sure you want to delete it?"
-        ))
-      )
-        return;
-      sh.remove(id);
+      await alert
+        .confirm("Delete source handler", "Are you sure you want to delete it?")
+        .then((r) => r && remove(id));
     },
-    [sh]
+    [remove],
   );
 
-  const handleExport = useCallback(
-    async (id: string) => {
-      const handler = sh.getById(id);
-      const content = sh.getJavascriptById(id);
-
-      if (!content || !handler) {
-        toast.error(`Download not available for '${handler?.label}'`);
-        return;
-      }
-
-      const filename = `${handler.id}.${handler.version}.handler.js`;
-      downloadUrl(content, filename);
-    },
-    [sh]
-  );
+  const handleExport = useCallback(async (id: string) => {
+    // const handler = sh.getById(id);
+    // const content = sh.getJavascriptById(id);
+    // if (!content || !handler) {
+    //   toast.error(`Download not available for '${handler?.label}'`);
+    //   return;
+    // }
+    // const filename = `${handler.id}.${handler.version}.handler.js`;
+    // downloadUrl(content, filename);
+  }, []);
 
   return (
     <>
@@ -114,36 +98,39 @@ export function SourceHandlerListDialog({
         <DialogContent
           className={cn("h-full sm:max-w-[400px] sm:min-h-[300px] sm:h-fit")}
         >
-          <DialogHeader>
-            <DialogTitle>Source handlers</DialogTitle>
-            <DialogDescription>
-              Manage built-in and custom source handlers
-            </DialogDescription>
+          <DialogHeader className="flex flex-row items-center gap-3">
+            <Plug2Icon className="rotate-45 size-8" />
+            <div>
+              <DialogTitle>Plugin Editor</DialogTitle>
+              <DialogDescription>
+                Extend the app capabilities with a plugin
+              </DialogDescription>
+            </div>
           </DialogHeader>
           <div className="h-full">
-            <div>
+            {/* <div>
               <h3 className="text-sm font-semibold"> Built-in handlers</h3>
-              <SourceHandlerList
-                handlers={sh.builtIn.filter((h) => !h.hidden)}
+              <PluginList
+                list={sh.builtIn.filter((h) => !h.hidden)}
                 onView={handleView}
               />
-            </div>
+            </div> */}
 
             <div className="mt-2">
               <div className="flex justify-between">
-                <h3 className="text-sm font-semibold">Custom handlers</h3>
-                <Button
+                <h3 className="text-sm font-semibold">Plugins</h3>
+                {/* <Button
                   variant="link"
                   size="link"
                   className="text-background cursor-default"
                   onClick={() => setShowHidden((p) => !p)}
                 >
                   Toggle hidden
-                </Button>
+                </Button> */}
               </div>
 
-              <SourceHandlerList
-                handlers={sh.custom.filter((h) => !h.hidden || showHidden)}
+              <PluginList
+                list={list}
                 onView={handleView}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
@@ -164,7 +151,7 @@ export function SourceHandlerListDialog({
                 className="gap-2"
               >
                 <PlusCircleIcon className="size-4" />
-                Create custom
+                Create a new plugin
               </Button>
             </div>
             <DialogClose asChild>
@@ -175,53 +162,52 @@ export function SourceHandlerListDialog({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <SourceHandlerEditDialog
-        {...sourceHandlerEdit}
-        onOpenChange={() =>
-          setSourceHandlerEdit((p) => ({ ...p, open: false }))
-        }
+      <PluginEditorDialog
+        id={pluginEditDialog.id}
+        open={pluginEditDialog.open}
+        onOpenChange={() => setPluginEditDialog((p) => ({ ...p, open: false }))}
       />
     </>
   );
 }
 
-export type SourceHandlerListProps = {
-  handlers: SourceHandler[];
-  onView?: (id: string) => void;
-  onEdit?: (id: string) => void;
-  onDelete?: (id: string) => void;
-  onExport?: (id: string) => void;
+export type PluginListProps = {
+  list: Plugin[];
+  onView?: (name: string) => void;
+  onEdit?: (name: string) => void;
+  onDelete?: (name: string) => void;
+  onExport?: (name: string) => void;
 };
 
-export function SourceHandlerList({
-  handlers,
+export function PluginList({
+  list,
   onView,
   onEdit,
   onDelete,
   onExport,
-}: SourceHandlerListProps) {
+}: PluginListProps) {
   return (
     <Table>
       <TableBody>
-        {handlers.length === 0 && (
+        {list.length === 0 && (
           <TableRow className="pointer-events-none">
             <TableCell className="text-yellow-500">
-              There's no handlers here
+              There's no plugins here
             </TableCell>
           </TableRow>
         )}
-        {handlers.map((handler) => (
-          <TableRow key={handler.id}>
+        {list.map((it) => (
+          <TableRow key={it.id}>
             <TableCell
               className={cn("font-medium", onView && "cursor-pointer")}
-              onClick={() => onView && onView(handler.id)}
+              onClick={() => onView && onView(it.id)}
             >
               <div className="flex items-center gap-2">
-                {handler.icon && (
+                {/* {handler.icon && (
                   <img src={handler.icon} className="size-4 select-none" />
-                )}
-                {handler.label}
-                {handler.hidden && <EyeOffIcon className="w-4 h-4" />}
+                )} */}
+                {it.name}
+                {/* {handler.hidden && <EyeOffIcon className="w-4 h-4" />} */}
               </div>
             </TableCell>
 
@@ -229,7 +215,7 @@ export function SourceHandlerList({
               <TableCell className="w-[1px] p-1">
                 <TableCellActionButton
                   title="Edit"
-                  onClick={() => onEdit && onEdit(handler.id)}
+                  onClick={() => onEdit && onEdit(it.id)}
                 >
                   <PencilIcon />
                 </TableCellActionButton>
@@ -240,7 +226,7 @@ export function SourceHandlerList({
               <TableCell className="w-[1px] p-1">
                 <TableCellActionButton
                   title="Export"
-                  onClick={() => onExport && onExport(handler.id)}
+                  onClick={() => onExport && onExport(it.id)}
                 >
                   <FileDownIcon />
                 </TableCellActionButton>
@@ -251,7 +237,7 @@ export function SourceHandlerList({
               <TableCell className="w-[1px] p-1">
                 <TableCellActionButton
                   title="Delete"
-                  onClick={() => onDelete && onDelete(handler.id)}
+                  onClick={() => onDelete && onDelete(it.id)}
                   className="hover:!bg-destructive hover:!text-destructive-foreground"
                 >
                   <TrashIcon />
@@ -278,7 +264,7 @@ function TableCellActionButton({
           <Button
             className={cn(
               "h-7 w-7 hover:!bg-muted-foreground hover:!text-background",
-              className
+              className,
             )}
             variant="ghost"
             size="icon"

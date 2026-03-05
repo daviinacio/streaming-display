@@ -26,7 +26,11 @@
   "ts-node": {
     "esm": true
   },
-  "include": ["src"],
+  "include": [
+    "src",
+    "src/components/domains/source-handlersndlers",
+    "src/assets/builtin-source-handlers"
+  ],
   "references": [
     {
       "path": "./tsconfig.node.json"

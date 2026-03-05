@@ -14,7 +14,7 @@ export default defineConfig({
       output: {
         manualChunks: (id: string) => {
           const packageName = packageKeys.find((pkg) =>
-            packages[pkg].some((m) => id.includes(`/${m}/`))
+            packages[pkg].some((m) => id.includes(`/${m}/`)),
           );
           if (packageName) return packageName;
           else if (id.includes("/node_modules/")) return "vendor";
@@ -23,6 +23,9 @@ export default defineConfig({
         },
       },
     },
+  },
+  define: {
+    "process.env": {},
   },
   plugins: [
     react(),
