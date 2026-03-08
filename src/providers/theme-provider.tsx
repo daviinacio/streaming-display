@@ -6,8 +6,7 @@ import React, {
   useMemo,
 } from "react";
 
-import { usePreference } from "@/hooks/use-preference";
-import { Preferences } from "./preference-provider";
+import { Preferences, usePreference } from "@/hooks/use-preference";
 import { applyTheme } from "@/lib/theme.ts";
 
 type Theme = Preferences["theme"];
@@ -38,7 +37,7 @@ export const ThemeProviderContext =
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   const [isBrowserDarkMode, setIsBrowserDarkMode] = useState(
-    typeof window !== "undefined" && mediaQuery.matches
+    typeof window !== "undefined" && mediaQuery.matches,
   );
 
   useEffect(() => {
@@ -52,12 +51,11 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     return () => mediaQuery.removeEventListener("change", updateTheme);
   }, []);
 
-  const preferences = usePreference();
-  const theme = preferences.getItem("theme");
+  const [theme, setPreferenceTheme] = usePreference("theme");
 
   useEffect(() => {
     const systemTheme = isBrowserDarkMode ? "dark" : "light";
-    if (systemTheme === theme) preferences.setItem("theme", "system");
+    if (systemTheme === theme) setPreferenceTheme("system");
   }, [theme, isBrowserDarkMode]);
 
   const isDarkMode = useMemo(() => {
@@ -72,10 +70,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
     setTheme(isDarkMode ? "light" : "dark");
   }, [isBrowserDarkMode, isDarkMode]);
 
-  const setTheme = useCallback(
-    (theme: Theme) => preferences.setItem("theme", theme),
-    []
-  );
+  const setTheme = useCallback((theme: Theme) => setPreferenceTheme(theme), []);
 
   return (
     <ThemeProviderContext.Provider

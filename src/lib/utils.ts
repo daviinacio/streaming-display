@@ -162,3 +162,28 @@ export function downloadUrl(url: string, filename: string) {
 
   document.body.removeChild(element);
 }
+
+export function mergeDefined<T extends {}>(target: T, source: T) {
+  for (const key in source) {
+    if (
+      Object.prototype.hasOwnProperty.call(source, key) &&
+      source[key] !== undefined
+    ) {
+      target[key] = source[key];
+    }
+  }
+  return target;
+}
+
+export function formatStringToJSX(text: string, ...args: string[]) {
+  let replaceIndex = 0;
+  return text.split("%s").reduce((acc, part, i, array) => {
+    acc.push(part);
+    if (i < array.length - 1) {
+      acc.push(args[replaceIndex++]);
+    }
+    return acc;
+  }, [] as string[]);
+}
+
+export const generateId = () => Math.random().toString(36).substring(2, 9);

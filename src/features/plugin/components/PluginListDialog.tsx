@@ -18,11 +18,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui";
+import { Switch } from "@/components/ui/switch";
 import useAlertDialog from "@/hooks/use-alert-dialog";
 import { cn, downloadUrl } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
 import {
-  EyeOffIcon,
   FileDownIcon,
   PencilIcon,
   Plug2Icon,
@@ -31,15 +31,16 @@ import {
 } from "lucide-react";
 import { PropsWithChildren, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plugin, usePlugin } from "../hooks/use-plugin";
+import { usePlugin } from "../hooks/use-plugin";
+import { Plugin } from "../types";
 import { PluginEditorDialog } from "./PluginEditorDialog";
 
 export type PluginListDialogProps = PropsWithChildren;
 
 export function PluginListDialog({ children }: PluginListDialogProps) {
-  const { list, remove } = usePlugin();
+  const { list, remove, findPluginRawById } = usePlugin();
   const [open, setOpen] = useState(false);
-  const [showHidden, setShowHidden] = useState(false);
+  // const [showHidden, setShowHidden] = useState(false);
 
   const alert = useAlertDialog();
 
@@ -49,7 +50,7 @@ export function PluginListDialog({ children }: PluginListDialogProps) {
   });
 
   useEffect(() => {
-    open && setShowHidden(false);
+    // open && setShowHidden(false);
   }, [open]);
 
   const handleCreate = useCallback(() => {
@@ -61,6 +62,10 @@ export function PluginListDialog({ children }: PluginListDialogProps) {
 
   const handleView = useCallback((id: string) => {
     console.log("view", `'${id}'`);
+    setPluginEditDialog({
+      id,
+      open: true,
+    });
   }, []);
 
   const handleEdit = useCallback((id: string) => {
@@ -79,16 +84,19 @@ export function PluginListDialog({ children }: PluginListDialogProps) {
     [remove],
   );
 
-  const handleExport = useCallback(async (id: string) => {
-    // const handler = sh.getById(id);
-    // const content = sh.getJavascriptById(id);
-    // if (!content || !handler) {
-    //   toast.error(`Download not available for '${handler?.label}'`);
-    //   return;
-    // }
-    // const filename = `${handler.id}.${handler.version}.handler.js`;
-    // downloadUrl(content, filename);
-  }, []);
+  const handleExport = useCallback(
+    async (id: string) => {
+      const pluginRaw = findPluginRawById(id);
+      if (!pluginRaw) return toast.error(`Plugin download not available`);
+      const filename = `${pluginRaw.name.toLowerCase()}.plugin.ts`;
+
+      const content = encodeURIComponent(
+        `export default ${JSON.stringify(pluginRaw)}`,
+      );
+      downloadUrl(`data:text/javascript;charset=utf-8,${content}`, filename);
+    },
+    [findPluginRawById],
+  );
 
   return (
     <>
@@ -108,13 +116,13 @@ export function PluginListDialog({ children }: PluginListDialogProps) {
             </div>
           </DialogHeader>
           <div className="h-full">
-            {/* <div>
+            <div>
               <h3 className="text-sm font-semibold"> Built-in handlers</h3>
               <PluginList
-                list={sh.builtIn.filter((h) => !h.hidden)}
+                list={list.filter((it) => it.isBuiltin)}
                 onView={handleView}
               />
-            </div> */}
+            </div>
 
             <div className="mt-2">
               <div className="flex justify-between">
@@ -130,7 +138,7 @@ export function PluginListDialog({ children }: PluginListDialogProps) {
               </div>
 
               <PluginList
-                list={list}
+                list={list.filter((it) => !it.isBuiltin)}
                 onView={handleView}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
@@ -186,6 +194,7 @@ export function PluginList({
   onDelete,
   onExport,
 }: PluginListProps) {
+  const { updatePluginEnabled } = usePlugin();
   return (
     <Table>
       <TableBody>
@@ -198,6 +207,17 @@ export function PluginList({
         )}
         {list.map((it) => (
           <TableRow key={it.id}>
+            {!it.isBuiltin && (
+              <TableCell className="w-1">
+                <Switch
+                  size="sm"
+                  checked={it.enabled}
+                  onCheckedChange={(checked) =>
+                    updatePluginEnabled(it.id, checked)
+                  }
+                />
+              </TableCell>
+            )}
             <TableCell
               className={cn("font-medium", onView && "cursor-pointer")}
               onClick={() => onView && onView(it.id)}

@@ -1,5 +1,4 @@
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -12,51 +11,21 @@ import {
   ResizablePanelGroup,
   ResizableSeparator,
 } from "@/components/ui";
-import {
-  HtmlHTMLAttributes,
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
-import {
-  useFieldArray,
-  useForm,
-  useFormContext,
-  UseFormReturn,
-} from "react-hook-form";
+import { useCallback, useEffect, useState } from "react";
+import { useForm, useFormContext } from "react-hook-form";
 
 import { Form, FormField } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { CodeEditor } from "@/components/widget";
 import { PluginRawSchema } from "@/features/plugin/validation/plugin.schema";
+import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { zodSchemaDefaults } from "@daviapps/react-utils/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  FileIcon,
-  Plug2Icon,
-  PlusIcon,
-  PuzzleIcon,
-  Trash2Icon,
-} from "lucide-react";
-import useAlertDialog from "@/hooks/use-alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { PLUGIN_TYPE_OPTIONS } from "../constants/plugin-type.options";
-import { cn } from "@/lib/utils";
-import useClickOutside from "@/hooks/use-click-outside";
-import { Switch } from "@/components/ui/switch";
-import { useHotkey } from "@tanstack/react-hotkeys";
 import { DialogProps } from "@radix-ui/react-dialog";
+import { Plug2Icon, PuzzleIcon } from "lucide-react";
 import { usePlugin } from "../hooks/use-plugin";
+import { PluginComponentList } from "./PluginComponentList";
 
 export function PluginEditorDialog({
   children,
@@ -65,6 +34,7 @@ export function PluginEditorDialog({
 }: DialogProps & { id?: string }) {
   const [currentComponent, setCurrentComponent] = useState<number>(-1);
   const { save, findPluginRawById } = usePlugin();
+  const isDesktop = useIsDesktop();
 
   const form = useForm<PluginRawSchema>({
     defaultValues: zodSchemaDefaults(PluginRawSchema),
@@ -74,7 +44,14 @@ export function PluginEditorDialog({
   const handleSubmit = useCallback(
     (data: PluginRawSchema) => {
       console.log("data", data);
-      save(data);
+      save({
+        id: data.id,
+        // @ts-ignore
+        components: data.components,
+        enabled: data.enabled,
+        match: data.match,
+        name: data.name,
+      });
       props.onOpenChange && props.onOpenChange(false);
     },
     [save],
@@ -86,6 +63,10 @@ export function PluginEditorDialog({
     const pluginRaw = findPluginRawById(id);
     if (!pluginRaw) return;
     form.reset(pluginRaw);
+  }, [id, props.open]);
+
+  useEffect(() => {
+    setCurrentComponent(-1);
   }, [id]);
 
   // useHotkey("Mod+S", (e) => {
@@ -97,7 +78,7 @@ export function PluginEditorDialog({
     <Dialog {...props}>
       <DialogTrigger>{children}</DialogTrigger>
       <DialogContent
-        className="max-w-[calc(100%-32px)] w-full max-h-[calc(100%-32px)] h-full p-0 gap-0"
+        className="sm:max-w-[calc(100%-32px)] w-[1200px] sm:max-h-[calc(100%-32px)] h-full p-0 gap-0"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(event) => event.preventDefault()}
       >
@@ -116,7 +97,10 @@ export function PluginEditorDialog({
           onSubmit={form.handleSubmit(handleSubmit, (e) => console.error(e))}
           className="h-full"
         >
-          <ResizablePanelGroup orientation="horizontal" className="">
+          <ResizablePanelGroup
+            orientation={isDesktop ? "horizontal" : "vertical"}
+            className=""
+          >
             <ResizablePanel
               defaultSize="300px"
               minSize={250}
@@ -124,14 +108,15 @@ export function PluginEditorDialog({
             >
               <PluginDetail />
               <Separator />
-              <ComponentList onSelect={(index) => setCurrentComponent(index)} />
+              <PluginComponentList
+                selected={currentComponent}
+                onSelect={(index) => setCurrentComponent(index)}
+              />
             </ResizablePanel>
-            <ResizableSeparator />
+            <ResizableSeparator withHandle={!isDesktop} />
             <ResizablePanel minSize={500}>
               <Tabs value={String(currentComponent)} className="h-full">
-                <TabsContent value={"-1"}></TabsContent>
-
-                {!form.watch("components").at(currentComponent) && (
+                {currentComponent === -1 && (
                   <div className="h-full mt-0 flex flex-col items-center justify-center text-muted-foreground">
                     <PuzzleIcon className="size-16" />
                     <span className="text-2xl font-bold mt-2">
@@ -188,176 +173,6 @@ function PluginDetail() {
       >
         <InputTextList placeholder="https://example.com/*" />
       </FormField>
-    </div>
-  );
-}
-
-interface ComponentListProps {
-  onSelect: (index: number) => void;
-}
-
-function ComponentList({ onSelect }: ComponentListProps) {
-  const form = useFormContext<PluginRawSchema>();
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "components",
-  });
-
-  // useEffect(() => console.table(form.watch("components")), [form.watch()]);
-
-  return (
-    <div className="p-4 flex-1 flex flex-col">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted-foreground">
-          Components
-        </h3>
-        <Button
-          variant="ghost"
-          className="size-6 p-0"
-          onClick={() =>
-            append({
-              enabled: true,
-              type: "Player",
-              code: "",
-              name: "",
-              isEdit: true,
-              isDirty: false,
-            })
-          }
-        >
-          <PlusIcon className="size-4" />
-        </Button>
-      </div>
-
-      <div className="flex-1 flex flex-col">
-        {fields.map((_, i) => (
-          <ComponentListItem
-            key={i}
-            index={i}
-            onRemove={() => remove(i)}
-            onSelect={() => onSelect(i)}
-          />
-        ))}
-      </div>
-
-      <div className="flex justify-end">
-        <Button type="submit">Save</Button>
-      </div>
-    </div>
-  );
-}
-
-interface ComponentListItemProps {
-  index: number;
-  onRemove: () => void;
-  onSelect: () => void;
-}
-
-function ComponentListItem({
-  index,
-  onRemove,
-  onSelect,
-}: ComponentListItemProps) {
-  const form = useFormContext<PluginRawSchema>();
-  const alert = useAlertDialog();
-
-  const [isSelectTypeOpen, setIsSelectTypeOpen] = useState(false);
-
-  const { name, isEdit, isDirty } = form.watch(`components.${index}`);
-
-  function setIsEdit(v: boolean) {
-    form.setValue(`components.${index}.isEdit`, v);
-  }
-
-  function setIsDirty(v: boolean) {
-    form.setValue(`components.${index}.isDirty`, v);
-  }
-
-  const wrapperRef = useClickOutside(() => {
-    if (!isEdit || isSelectTypeOpen) return;
-
-    if (name !== "") {
-      setIsEdit(false);
-      setIsDirty(true);
-    } else if (!isDirty) {
-      return onRemove();
-    }
-  });
-
-  return (
-    <div
-      ref={wrapperRef}
-      className={cn(
-        "flex items-center gap-2",
-        !isEdit && "cursor-pointer *:cursor-pointer",
-      )}
-      onDoubleClick={() => setIsEdit(true)}
-      onClick={() => !isEdit && onSelect()}
-    >
-      {/* <FormField
-        control={form.control}
-        name={`components.${index}.enabled`}
-        className="max-w-9"
-      >
-        <Switch size="sm" />
-      </FormField> */}
-
-      <FormField
-        control={form.control}
-        name={`components.${index}.type`}
-        className="max-w-9"
-      >
-        <Select
-          disabled={!isEdit}
-          open={isSelectTypeOpen}
-          onOpenChange={setIsSelectTypeOpen}
-        >
-          <SelectTrigger className="w-full border-0 !ring-0 shadow-none p-0">
-            <SelectValue placeholder="Select a fruit" />
-          </SelectTrigger>
-          <SelectContent className="max-w-48">
-            <SelectGroup>
-              <SelectLabel>Type</SelectLabel>
-              {PLUGIN_TYPE_OPTIONS.map(({ icon: Icon, label, value }) => (
-                <SelectItem value={value} key={value}>
-                  <div className="flex items-center gap-2">
-                    <Icon className="size-4 min-w-4" />{" "}
-                    <span className="">{label}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </FormField>
-
-      <FormField control={form.control} name={`components.${index}.name`}>
-        <Input
-          placeholder="Component name ..."
-          className={cn(
-            "!ring-0 border-0 !shadow-none !p-0 h-fit",
-            !isEdit && "cursor-pointer",
-          )}
-          readOnly={!isEdit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              setIsEdit(false);
-            }
-          }}
-        />
-      </FormField>
-      <Button
-        className={cn("p-0 size-6 ", (!isEdit || !isDirty) && "hidden")}
-        variant="ghost"
-        onClick={() =>
-          alert
-            .confirm("Delete component", "Are you sure?")
-            .then((r) => r && onRemove())
-        }
-      >
-        <Trash2Icon className="size-4 text-destructive" />
-      </Button>
     </div>
   );
 }

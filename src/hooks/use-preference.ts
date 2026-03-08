@@ -1,9 +1,22 @@
-import { useContext } from "react";
-import { PreferenceContext } from "../providers/preference-provider";
+import { useLocalState } from "@daviapps/react-utils/hooks";
 
-export function usePreference(){
-  const context = useContext(PreferenceContext);
-  if (context === undefined)
-    throw new Error('usePreference must be used within a PreferenceProvider');
-  return context;
+export type Preferences = {
+  theme: "system" | "light" | "dark";
+  locale: string;
+  "color-primary": string;
+  "fit-video": boolean;
+};
+
+const defaultPreferences: Preferences = {
+  theme: "system",
+  locale: "system",
+  "fit-video": false,
+  "color-primary": "206 100% 57%",
+};
+
+export function usePreference<K extends keyof Preferences>(key: K) {
+  return useLocalState<Preferences[K]>({
+    key,
+    initialState: defaultPreferences[key],
+  });
 }

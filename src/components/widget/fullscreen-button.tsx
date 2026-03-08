@@ -1,14 +1,14 @@
 import { ButtonProps } from "@/components/ui";
 import { HeaderButton } from "@/components/widget";
-import { useTemporaryState } from "@/hooks/use-temporary-state";
+import { useSessionState } from "@daviapps/react-utils/hooks";
 import { EnterFullScreenIcon, ExitFullScreenIcon } from "@radix-ui/react-icons";
 import { useCallback, useEffect } from "react";
 
 export function FullscreenButton(props: ButtonProps) {
-  const [isFullscreen, setIsFullscreen] = useTemporaryState(
-    "fullscreen",
-    !!document.fullscreenElement
-  );
+  const [isFullscreen, setIsFullscreen] = useSessionState({
+    key: "fullscreen",
+    initialState: !!document.fullscreenElement,
+  });
 
   useEffect(() => {
     if (isFullscreen) {

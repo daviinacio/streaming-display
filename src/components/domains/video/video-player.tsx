@@ -57,7 +57,10 @@ import {
 import ReactPlayer from "react-player";
 import FadeLoader from "react-spinners/FadeLoader";
 import { Draggable } from "../drag-n-drop/draggable";
-import { GridItem, GridItemProps } from "../grid/grid-item";
+import {
+  GridItem,
+  GridItemProps,
+} from "../../../features/grid/components/grid-item";
 import {
   VideoPlayerAction,
   videoPlayerReducer,
@@ -95,7 +98,7 @@ export function VideoPlayer({
       playing: true,
       muted: true,
       volume: 0.5,
-    }
+    },
   );
 
   return (
@@ -131,7 +134,7 @@ export type PlayerEvents = {
     content: string,
     location: DropLocation,
     url: string,
-    moving?: boolean
+    moving?: boolean,
   ) => void;
   onRemove?: (url: string) => void;
 };
@@ -177,7 +180,7 @@ export const Player = memo(function ({
         refetchInterval:
           state.refetchInterval && millisecondsToString(state.refetchInterval),
       }),
-    [state.refetchInterval]
+    [state.refetchInterval],
   );
 
   const {
@@ -228,7 +231,7 @@ export const Player = memo(function ({
 
       iframe.style.width = `${Math.max(
         wrapperRef.current.offsetWidth,
-        (wrapperRef.current.offsetHeight / 9) * 16
+        (wrapperRef.current.offsetHeight / 9) * 16,
       )}px`;
     }
 
@@ -286,7 +289,7 @@ export const Player = memo(function ({
 
       dispatch({ type: "play" });
     },
-    [refetch, refreshCoolDown]
+    [refetch, refreshCoolDown],
   );
 
   useEffect(() => {
@@ -311,21 +314,21 @@ export const Player = memo(function ({
         "h-full",
         "duration-500 ease-in delay-100",
         state.maximize &&
-          "[[role=grid]:has(&)_[role=grid-item]>div]:opacity-0 [[role=grid]:has(&)_[role=grid-item]>div]:delay-0 [[role=grid]:has(&)_[role=grid-item]>div]:ease-out !opacity-100"
+          "[[role=grid]:has(&)_[role=grid-item]>div]:opacity-0 [[role=grid]:has(&)_[role=grid-item]>div]:delay-0 [[role=grid]:has(&)_[role=grid-item]>div]:ease-out !opacity-100",
       )}
       disabled={state.maximize}
       ghost={
         <div
           className={cn(
             "border-2 px-2 h-[40px] bg-black/70 rounded-md flex items-center gap-2",
-            error ? "border-destructive" : "border-primary"
+            error ? "border-destructive" : "border-primary",
           )}
         >
           <div>
             <Tv2Icon
               className={cn(
                 "size-5",
-                error ? "text-destructive" : "text-primary"
+                error ? "text-destructive" : "text-primary",
               )}
             />
           </div>
@@ -334,7 +337,7 @@ export const Player = memo(function ({
             <p
               className={cn(
                 "text-white text-lg font-semibold truncate max-w-[400px]",
-                "drop-shadow-text"
+                "drop-shadow-text",
               )}
             >
               {data?.title || url}
@@ -367,7 +370,7 @@ export const Player = memo(function ({
               "hover:ring-2",
               error ? "hover:ring-destructive" : "hover:ring-primary",
             ],
-            isInactive && "cursor-none"
+            isInactive && "cursor-none",
           )}
           ref={wrapperRef}
         >
@@ -377,7 +380,7 @@ export const Player = memo(function ({
                 className={cn(
                   "absolute top-1 left-1  z-20 transition-[opacity] duration-300",
                   "  flex flex-col gap-2",
-                  !isInactive && "group-hover/player:opacity-0"
+                  !isInactive && "group-hover/player:opacity-0",
                 )}
               >
                 {data && data.sourceUrl && !error && (
@@ -406,7 +409,7 @@ export const Player = memo(function ({
                     "[&_iframe]:left-[50%]",
                     "[&_iframe]:object-cover",
                     "text-white",
-                    error && "blur-sm"
+                    error && "blur-sm",
                   )}
                 >
                   {/* <div
@@ -452,7 +455,7 @@ export const Player = memo(function ({
                 <div
                   className={cn(
                     "absolute inset-0 bg-black/70 flex flex-col gap-1 items-center justify-center",
-                    "[&_a]:underline [&_a]:text-base hover:[&_a]:text-destructive text-center"
+                    "[&_a]:underline [&_a]:text-base hover:[&_a]:text-destructive text-center",
                   )}
                 >
                   {error.message.split("\n").map((m, i) =>
@@ -469,7 +472,7 @@ export const Player = memo(function ({
                         className="text-base leading-5"
                         dangerouslySetInnerHTML={{ __html: m }}
                       />
-                    )
+                    ),
                   )}
                 </div>
               )}
@@ -498,7 +501,7 @@ export const Player = memo(function ({
                   key="pip"
                   className={cn(
                     "absolute inset-0 text-2xl text-muted-foreground",
-                    "flex flex-col items-center justify-center"
+                    "flex flex-col items-center justify-center",
                   )}
                 >
                   <PictureInPictureIcon className="size-16" />
@@ -514,7 +517,7 @@ export const Player = memo(function ({
                   "p-1 pl-3 transition-[opacity] duration-300",
                   "opacity-0",
                   !isInactive && "group-hover/player:opacity-100",
-                  "bg-gradient-to-b from-black/80 pointer-events-none"
+                  "bg-gradient-to-b from-black/80 pointer-events-none",
                 )}
               >
                 <div className="max-w-[70%] pointer-events-auto flex gap-2">
@@ -523,7 +526,7 @@ export const Player = memo(function ({
                       <p
                         className={cn(
                           "text-2xl font-semibold truncate",
-                          "drop-shadow-text"
+                          "drop-shadow-text",
                         )}
                         onClick={() =>
                           data?.title && copyToClipboard(data?.title, "Title")
@@ -554,7 +557,7 @@ export const Player = memo(function ({
                   "p-1 transition-[opacity] duration-300",
                   "opacity-0",
                   !isInactive && "group-hover/player:opacity-100",
-                  "bg-gradient-to-t from-black/80 "
+                  "bg-gradient-to-t from-black/80 ",
                   // "!pointer-events-none",
                   // (error || !data) && "hidden"
                 )}
@@ -567,7 +570,7 @@ export const Player = memo(function ({
                   <div
                     className={cn(
                       "flex items-center",
-                      (error || !data) && "hidden"
+                      (error || !data) && "hidden",
                     )}
                   >
                     <ActionButton
@@ -698,7 +701,7 @@ export function ActionButton({
               "p-2 rounded-full active:bg-black/5 md:hover:bg-black/5",
               "active:text-white md:hover:text-white ",
               "transition-colors group/button pointer-events-auto",
-              className
+              className,
             )}
             onDoubleClick={(e) => {
               e.stopPropagation();
@@ -711,7 +714,7 @@ export function ActionButton({
               className={cn(
                 size === "sm" ? "size-5" : "size-7",
                 "group-hover/button:scale-125 group-active/button:scale-90",
-                "transition-[transform] group-active/button:duration-75 duration-200"
+                "transition-[transform] group-active/button:duration-75 duration-200",
               )}
             >
               {children}

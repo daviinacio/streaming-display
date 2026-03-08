@@ -1,63 +1,27 @@
-import { transformStringToJsxComponent } from "@/features/plugin/components/DynamicComponent";
-import { findWildcard, randomInteger } from "@/lib/utils";
+import { distinct, findWildcard } from "@/lib/utils";
 import {
   createContext,
   PropsWithChildren,
-  ReactElement,
-  ReactNode,
   useCallback,
   useContext,
   useEffect,
   useState,
 } from "react";
-
-export interface PluginCommon {
-  id: string;
-  enabled: boolean;
-  name: string;
-  match: Array<string>;
-}
-
-export interface PluginRaw extends PluginCommon {
-  components: Array<PluginRawComponent>;
-}
-
-export type PluginRawComponent = {
-  name: string;
-  type: string;
-  code: string;
-};
-
-export interface Plugin extends PluginCommon {
-  readonly: boolean;
-  components: Array<PluginComponent>;
-}
-
-export type PluginComponent = {
-  type: string;
-  name: string;
-  component: (props: any) => ReactNode;
-};
-// | {
-//     type: "SourceHandler";
-//     handler: (url: string) => any;
-//   };
-
-// export interface PluginComponent {
-//   name: string;
-//   type: PluginComponentType;
-//   handler: (props: any) => ReactNode;
-// }
-
-// export type PluginComponentType = "SourceHandler" | "Player";
+import { parsePluginComponent } from "../lib/parse-plugin-component";
+import { Plugin, PluginComponent, PluginRaw } from "../types";
+import { PLUGIN_TYPE_OPTIONS } from "../constants/plugin-type.options";
 
 export interface PluginContextState {
   list: Array<Plugin>;
   save: (plugin: PluginRaw) => void;
   remove: (id: string) => void;
-  findPluginRawById: (id: string) => PluginRaw | void;
-  findPluginByUrl: (url: string) => Plugin | void;
-  findPlayerByUrl: (url: string) => ((props: any) => React.ReactNode) | void;
+  updatePluginEnabled: (id: string, enabled: boolean) => void;
+  findPluginRawById: (id: string) => PluginRaw | undefined;
+  findPluginByUrl: (url: string) => Plugin[];
+  findComponentByUrl: (
+    url: string,
+    type: PLUGIN_TYPE_OPTIONS,
+  ) => PluginComponent["component"][];
 }
 const PluginContext = createContext<PluginContextState | null>(null);
 
@@ -85,70 +49,102 @@ export function PluginProvider({ children }: PropsWithChildren) {
     setReload((p) => !p);
   }, []);
 
+  const savePluginsRaw = useCallback(() => {
+    const data = pluginsRaw
+      .map((it) => {
+        if (!it.id) it.id = String(new Date().getTime());
+        return it;
+      })
+      .filter((it) => !it.isBuiltin)
+      .filter(distinct("id"))
+      .map((it) => encodeURIComponent(`export default ${JSON.stringify(it)}`));
+
+    writeToStorage(data);
+  }, [pluginsRaw]);
+
   // Actions
 
   const handleFindPluginByUrl = useCallback<
     PluginContextState["findPluginByUrl"]
   >(
     (url) => {
-      return plugins.find((it) => it.enabled && findWildcard(it.match, url));
+      return plugins
+        .toSorted((a, b) => (a.isBuiltin !== b.isBuiltin ? 0 : 1))
+        .filter((it) => it.enabled && findWildcard(it.match, url));
     },
     [plugins],
   );
 
-  const handleFindPlayerByUrl = useCallback<
-    PluginContextState["findPlayerByUrl"]
+  const handleFindComponentByUrl = useCallback<
+    PluginContextState["findComponentByUrl"]
   >(
-    (url) => {
-      const plugin = handleFindPluginByUrl(url);
-      if (!plugin) return undefined;
-      const component = plugin.components.find((it) => it.type === "Player");
-      if (!component) return undefined;
-      return component.component;
+    (url, type) => {
+      return handleFindPluginByUrl(url).reduce(
+        (acc, plugin) => {
+          const components = plugin.components
+            .filter((it) => it.type === type && it.enabled)
+            .map((it) => it.component);
+          return [...acc, ...components];
+        },
+        [] as PluginComponent["component"][],
+      );
     },
     [plugins],
   );
 
   const handleFindPluginRawById = useCallback<
     PluginContextState["findPluginRawById"]
-  >((id) => pluginsRaw.find((it) => it.id === id), [pluginsRaw]);
+  >(
+    (id) =>
+      pluginsRaw
+        .toSorted((a, b) => (a.isBuiltin !== b.isBuiltin ? 0 : 1))
+        .find((it) => it.id === id),
+    [pluginsRaw],
+  );
 
   const handleSave = useCallback<PluginContextState["save"]>(
     (plugin) => {
-      if (!plugin.id) plugin.id = String(randomInteger(200, 9999));
-
-      const pluginIndex = plugins.findIndex((it) => it.id === plugin.id);
-      const pluginJson = encodeURIComponent(
-        `export default ${JSON.stringify(plugin)}`,
-      );
-
-      const data = readFromStorage();
-      if (pluginIndex >= 0) data[pluginIndex] = pluginJson;
-      else data.push(pluginJson);
-
-      writeToStorage(data);
+      const pluginIndex = pluginsRaw.findIndex((it) => it.id === plugin.id);
+      if (pluginIndex === -1) pluginsRaw.push(plugin);
+      else pluginsRaw[pluginIndex] = plugin;
+      savePluginsRaw();
     },
-    [plugins],
+    [pluginsRaw, savePluginsRaw],
   );
 
   const handleRemove = useCallback<PluginContextState["remove"]>(
     (id) => {
-      const pluginIndex = plugins.findIndex((p) => p.id === id);
-      const data = readFromStorage();
-      writeToStorage(data.filter((_, i) => i !== pluginIndex));
+      // console.log(23);
+      const pluginIndex = pluginsRaw.findIndex(
+        (p) => p.id === id && !p.isBuiltin,
+      );
+      delete pluginsRaw[pluginIndex];
+      savePluginsRaw();
     },
     [plugins],
   );
 
+  const handleUpdatePluginEnabled = useCallback<
+    PluginContextState["updatePluginEnabled"]
+  >(
+    (id, enabled) => {
+      const plugin = pluginsRaw.find((it) => it.id === id && !it.isBuiltin);
+      if (!plugin) return;
+      plugin.enabled = enabled;
+      savePluginsRaw();
+    },
+    [pluginsRaw],
+  );
+
   useEffect(() => {
     (async function () {
-      // const builtinHandlers: SourceHandler[] = await Promise.all(
-      //   Object.entries(
-      //     import.meta.glob("/src/assets/builtin-source-handlers/*")
-      //   ).map(([_, file]) => file().then((module: any) => module.default))
-      // );
+      const builtinPluginRaws: PluginRaw[] = await Promise.all(
+        Object.entries(import.meta.glob("/src/assets/builtin-plugins/*")).map(
+          ([_, file]) => file().then((module: any) => module.default),
+        ),
+      );
 
-      const rawList = (await Promise.all(
+      const customPluginRaws = (await Promise.all(
         readFromStorage().map((source) => {
           const dataUri = `data:text/javascript;charset=utf-8,${source}`;
           return import(/* @vite-ignore */ dataUri).then(
@@ -159,6 +155,7 @@ export function PluginProvider({ children }: PropsWithChildren) {
 
       async function convertPluginRaw(raw: PluginRaw): Promise<Plugin> {
         const plugin: Plugin = {
+          isBuiltin: raw.isBuiltin,
           id: raw.id,
           enabled: raw.enabled,
           match: raw.match,
@@ -170,27 +167,31 @@ export function PluginProvider({ children }: PropsWithChildren) {
         for (let i = 0; i < raw.components.length; i++) {
           const rawComponent = raw.components[i];
           // JSX components
-          if (["Player"].includes(rawComponent.type)) {
-            const component = await transformStringToJsxComponent(
-              rawComponent.code,
-            );
+          // if (["player"].includes(rawComponent.type)) {
+          const component = await parsePluginComponent(rawComponent.code);
 
-            plugin.components.push({
-              name: rawComponent.name,
-              type: rawComponent.type,
-              component: component,
-            });
-          }
+          plugin.components.push({
+            enabled: rawComponent.enabled,
+            name: rawComponent.name,
+            type: rawComponent.type,
+            component: component,
+          });
+          // }
         }
 
         return plugin;
       }
 
-      console.log("rawList", rawList);
+      builtinPluginRaws.forEach((it) => (it.isBuiltin = true));
+      customPluginRaws.forEach((it) => (it.isBuiltin = false));
 
-      setPluginsRaw(rawList);
+      const pluginRaws = [...builtinPluginRaws, ...customPluginRaws];
 
-      Promise.all(rawList.map(convertPluginRaw)).then((it) => setPlugins(it));
+      setPluginsRaw(pluginRaws);
+
+      Promise.all(pluginRaws.map(convertPluginRaw)).then((it) =>
+        setPlugins(it),
+      );
     })();
   }, [reload]);
 
@@ -200,8 +201,9 @@ export function PluginProvider({ children }: PropsWithChildren) {
         list: plugins,
         save: handleSave,
         remove: handleRemove,
+        updatePluginEnabled: handleUpdatePluginEnabled,
         findPluginRawById: handleFindPluginRawById,
-        findPlayerByUrl: handleFindPlayerByUrl,
+        findComponentByUrl: handleFindComponentByUrl,
         findPluginByUrl: handleFindPluginByUrl,
       }}
     >

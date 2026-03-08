@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
 } from "react";
 import { toast } from "sonner";
 
@@ -40,9 +41,10 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
       onDragOver,
       ...props
     },
-    ref
+    ref,
   ) => {
     const dropRef = useRef<HTMLDivElement>(null);
+    const [isDragging, setIsDragging] = useState(false);
     // useImperativeHandle(, () => dropRef.current!, []);
     const { notifyDrop, getDragState } = useMultiInstanceDrag();
 
@@ -55,7 +57,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
         const yp = Math.trunc((y / offsetHeight) * res);
 
         const offsetPixels = Math.trunc(
-          Math.min(offsetWidth, offsetHeight) * (paddingPercentage / 100)
+          Math.min(offsetWidth, offsetHeight) * (paddingPercentage / 100),
         );
 
         if (
@@ -83,7 +85,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
 
         return "center";
       },
-      [dropRef.current, onlyCenter]
+      [dropRef.current, onlyCenter],
     );
 
     useEffect(() => {
@@ -99,20 +101,23 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
       }
 
       function handleDrop(e: DragEvent) {
+        setIsDragging(false);
         e.preventDefault();
         e.stopPropagation();
 
         dropRef.current?.classList.remove(
-          ...DropLocation.map((dp) => `drag-pos-${dp}`)
+          ...DropLocation.map((dp) => `drag-pos-${dp}`),
         );
         dropRef.current?.classList.remove("drag-over");
 
         const data = String(
           e.dataTransfer?.getData(
             e.dataTransfer?.types
-              .filter((t) => ["text/uri-list", "text/plain"].includes(t))
-              .toReversed()[0]
-          )
+              .filter((t) =>
+                ["text/uri-list", "text/plain", "pane"].includes(t),
+              )
+              .toReversed()[0],
+          ),
         );
 
         if (!data || data.trim() === "" || !data.includes("https")) {
@@ -136,6 +141,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
       }
 
       function handleDragOver(e: DragEvent) {
+        setIsDragging(true);
         e.preventDefault();
         e.stopPropagation();
 
@@ -152,7 +158,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
         if (!dropRef.current?.classList.contains(posClass)) {
           onDragOver && onDragOver(e as any);
           dropRef.current?.classList.remove(
-            ...DropLocation.map((dp) => `drag-pos-${dp}`)
+            ...DropLocation.map((dp) => `drag-pos-${dp}`),
           );
         }
 
@@ -166,7 +172,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
         e.preventDefault();
         e.stopPropagation();
         dropRef.current?.classList.remove(
-          ...DropLocation.map((dp) => `drag-pos-${dp}`)
+          ...DropLocation.map((dp) => `drag-pos-${dp}`),
         );
         dropRef.current?.classList.remove("drag-over");
       }
@@ -205,7 +211,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
           "h-full relative group/drop-area",
           // "[&.drag-over>div>div]:!pointer-events-none",,
           // "[&>div]:pointer-events-none",
-          className
+          className,
         )}
         ref={dropRef}
         {...props}
@@ -217,7 +223,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
             "[.drag-pos-top_&]:pt-1",
             "[.drag-pos-bottom_&]:pb-1",
             "[.drag-pos-left_&]:pl-1",
-            "[.drag-pos-right_&]:pr-1"
+            "[.drag-pos-right_&]:pr-1",
           )}
         >
           <div
@@ -237,7 +243,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
               "[.drag-pos-right_&]:border-transparent [.drag-pos-right_&]:border-r-primary",
               !(typeof disabled === "function" ? disabled() : disabled) && [
                 "transition-[padding,border-color] duration-300",
-              ]
+              ],
             )}
             ref={ref}
           >
@@ -253,5 +259,5 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
         </div>
       </div>
     );
-  }
+  },
 );

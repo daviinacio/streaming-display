@@ -1,19 +1,10 @@
-import { Buffer } from "buffer";
 import { TextareaProps } from "@/components/ui";
 import { usePreference } from "@/hooks/use-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import Editor, { OnMount, useMonaco } from "@monaco-editor/react";
-import { useCallback, useEffect } from "react";
 import Color from "color";
-import { parse } from "@babel/parser";
-
-import MonacoJSXHighlighter from "monaco-jsx-highlighter";
-
-import {
-  MonacoJsxSyntaxHighlight,
-  getWorker,
-} from "monaco-jsx-syntax-highlight";
+import { useCallback } from "react";
 
 export type CodeEditorProps = Omit<TextareaProps, "onChange"> & {
   onChange?: (value?: string) => void;
@@ -31,10 +22,8 @@ export function CodeEditor({
 }: CodeEditorProps) {
   const theme = useTheme();
   const monaco = useMonaco();
-  const preferences = usePreference();
-  const currentColorPrimary = Color(
-    `hsl(${preferences.getItem("color-primary")})`,
-  );
+  const [colorPrimary] = usePreference("color-primary");
+  const currentColorPrimary = Color(`hsl(${colorPrimary})`);
 
   // useEffect(() => {
   //   if (!monaco) return;
@@ -96,6 +85,26 @@ export function CodeEditor({
   // }, [monaco]);
 
   const handleOnEditorMount = useCallback<OnMount>((editor, monaco) => {
+    monaco.editor.defineTheme("editor-dark", {
+      base: "vs-dark",
+      inherit: true,
+      rules: [],
+      colors: {
+        "editor.selectionBackground": currentColorPrimary.alpha(0.32).hexa(),
+        "editor.selectionHighlight": currentColorPrimary.hexa(),
+        "editor.background": "#09090b",
+      },
+    });
+
+    monaco.editor.defineTheme("editor-light", {
+      base: "vs",
+      inherit: true,
+      rules: [],
+      colors: {
+        "editor.background": "#ffffff",
+      },
+    });
+
     // 1. Definições de Tipos para Autocomplete (React Events + HTML)
     const reactTypes = `
     declare namespace JSX {
@@ -169,6 +178,7 @@ export function CodeEditor({
         // Imports dinâmicos
         const { parse } = await import("@babel/parser");
         const traverse = (await import("@babel/traverse")).default;
+        // @ts-ignore
         const MonacoJSXHighlighter = (await import("monaco-jsx-highlighter"))
           .default;
 

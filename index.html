@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <!--
 
 
@@ -36,17 +36,19 @@ Created by daviinacio
     <meta name="theme-color" content="" />
 
     <script type="module">
-        import { applyTheme } from "@/lib/theme.ts";
-        try {
-          applyTheme();
-        }
-        catch(err){
-          alert(err.message)
-        }
+      import { applyTheme } from "@/lib/theme.ts";
+      try {
+        applyTheme();
+      } catch (err) {
+        alert(err.message);
+      }
     </script>
+    <script src="https://player.twitch.tv/js/embed/v1.js"></script>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Add a placeholder for the Twitch embed -->
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

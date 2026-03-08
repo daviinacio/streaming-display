@@ -200,7 +200,7 @@ function FormField<D extends FieldValues>({
                 {React.cloneElement(children, {
                   ...(isForwardRef ? field : exclude(field, "ref")),
                   ...children.props,
-                  ...(childrenName === "Checkbox" && {
+                  ...(["Checkbox", "Switch"].includes(childrenName) && {
                     checked: field.value,
                     onCheckedChange: (value: string) => {
                       // @ts-ignore

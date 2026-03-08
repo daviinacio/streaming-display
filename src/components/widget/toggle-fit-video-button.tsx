@@ -1,16 +1,13 @@
 import { useCallback, useEffect } from "react";
 import { ButtonProps } from "../ui";
 import { HeaderButton } from "./header-button";
-import { usePreference } from "@/hooks/use-preference";
 import { ExpandIcon, ShrinkIcon } from "lucide-react";
+import { usePreference } from "@/hooks/use-preference";
 
 export function ToggleFitVideoButton(props: ButtonProps) {
-  const preferences = usePreference();
+  const [fitVideo, setFitVideo] = usePreference("fit-video");
 
-  const handleToggle = useCallback(
-    () => preferences.setItem("fit-video", (p) => !p),
-    []
-  );
+  const handleToggle = useCallback(() => setFitVideo((p) => !p), []);
 
   useEffect(() => {
     function handleKeyDown(e: globalThis.KeyboardEvent) {
@@ -25,7 +22,7 @@ export function ToggleFitVideoButton(props: ButtonProps) {
   }, [handleToggle]);
   return (
     <HeaderButton onClick={handleToggle} {...props}>
-      {preferences.getItem("fit-video") ? <ShrinkIcon /> : <ExpandIcon />}
+      {fitVideo ? <ShrinkIcon /> : <ExpandIcon />}
     </HeaderButton>
   );
 }

@@ -69,7 +69,7 @@ declare module "react-hook-form" {
   export type UseFormReturn<
     TFieldValues extends FieldValues = FieldValues,
     TContext = any,
-    TTransformedValues extends FieldValues | undefined = undefined
+    TTransformedValues extends FieldValues | undefined = undefined,
   > = {
     watch: UseFormWatch<TFieldValues>;
     getValues: UseFormGetValues<TFieldValues>;
@@ -92,7 +92,7 @@ declare module "react-hook-form" {
 }
 
 export type GridItem = {
-  url: string;
+  id: string;
   column: number;
   row: number;
 };

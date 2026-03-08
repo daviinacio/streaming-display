@@ -11,6 +11,7 @@ const packageKeys = Object.keys(packages) as Array<keyof typeof packages>;
 export default defineConfig({
   build: {
     rollupOptions: {
+      // external: ["react-player"],
       output: {
         manualChunks: (id: string) => {
           const packageName = packageKeys.find((pkg) =>

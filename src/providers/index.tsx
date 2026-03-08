@@ -1,18 +1,20 @@
 import { Toaster } from "@/components/ui/sonner";
 import { AlertDialogProvider } from "@/providers/alert-dialog-provider";
-import { PreferenceProvider } from "@/providers/preference-provider";
 import { ReactQueryProvider } from "@/providers/query-provider";
-import { TemporaryStateProvider } from "@/providers/temporary-state-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { PropsWithChildren } from "react";
 import { SourceHandlerProvider } from "./source-handler-provider";
 import { PluginProvider } from "@/features/plugin/hooks/use-plugin";
 import { HotkeysProvider } from "@tanstack/react-hotkeys";
+import {
+  LocalStateProvider,
+  SessionStateProvider,
+} from "@daviapps/react-utils/hooks";
 
 export function Providers({ children }: PropsWithChildren) {
   return (
-    <TemporaryStateProvider>
-      <PreferenceProvider>
+    <SessionStateProvider>
+      <LocalStateProvider>
         <SourceHandlerProvider>
           <ThemeProvider defaultTheme="system">
             <AlertDialogProvider>
@@ -25,7 +27,7 @@ export function Providers({ children }: PropsWithChildren) {
             </AlertDialogProvider>
           </ThemeProvider>
         </SourceHandlerProvider>
-      </PreferenceProvider>
-    </TemporaryStateProvider>
+      </LocalStateProvider>
+    </SessionStateProvider>
   );
 }

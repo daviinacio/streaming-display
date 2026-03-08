@@ -5,20 +5,12 @@ import {
   ThemeButton,
   ToggleFitVideoButton,
 } from "@/components/widget";
+import { PluginListDialog } from "@/features/plugin/components/PluginListDialog";
 import { cn } from "@/lib/utils";
-import {
-  ExternalLinkIcon,
-  FileCogIcon,
-  PaletteIcon,
-  Plug2Icon,
-  PlugIcon,
-} from "lucide-react";
+import { ExternalLinkIcon, PaletteIcon, Plug2Icon } from "lucide-react";
 import { HTMLAttributes } from "react";
 import { ThemeDialog } from "../domains/customize/theme-dialog";
-import { SourceHandlerListDialog } from "../domains/source-handlers/source-handler-list-dialog";
 import { Button, ButtonProps } from "../ui";
-import { PluginEditorDialog } from "@/features/plugin/components/PluginEditorDialog";
-import { PluginListDialog } from "@/features/plugin/components/PluginListDialog";
 
 export type AppHeaderProps = HTMLAttributes<HTMLHeadElement>;
 
@@ -63,9 +55,11 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
           </SourceHandlerListDialog> */}
 
           <PluginListDialog>
-            <HeaderButton title="Plugins">
-              <Plug2Icon className="rotate-45" />
-            </HeaderButton>
+            <span>
+              <HeaderButton title="Plugins">
+                <Plug2Icon className="rotate-45" />
+              </HeaderButton>
+            </span>
           </PluginListDialog>
 
           <ThemeButton title="Theme" />

@@ -7,6 +7,14 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    // {
+    //   pattern: /./,
+    // },
+    // {
+    //   pattern: /(bg|text|border)-(red|blue|green|gray)-(100|200|300|400|500|600|700|800|900)/,
+    // },
+  ],
   theme: {
     extend: {
       dropShadow: {

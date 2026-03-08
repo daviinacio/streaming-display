@@ -42,6 +42,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "color": "^5.0.0",
+    "immer": "^11.1.4",
     "lucide-react": "^0.577.0",
     "monaco-jsx-highlighter": "^2.77.77",
     "monaco-jsx-syntax-highlight": "^1.2.2",
@@ -61,6 +62,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-vite-plugin": "^0.0.7",
+    "use-immer": "^0.11.0",
     "vite-plugin-ejs": "^1.7.0",
     "vite-plugin-prismjs": "^0.0.11",
     "zod": "^4.3.6"

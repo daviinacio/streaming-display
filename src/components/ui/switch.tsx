@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root> & {
-    size: "default" | "sm";
+    size?: "default" | "sm";
   }
 >(({ className, size = "default", ...props }, ref) => (
   <SwitchPrimitives.Root

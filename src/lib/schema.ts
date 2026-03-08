@@ -1,4 +1,6 @@
+import { transformStringToJsxComponent } from "@/features/plugin/components/DynamicComponent";
 import { z } from "zod/v3";
+import { TsxParser } from "./tsx-parser";
 
 export type JavascriptSchemaProps = {
   requiredReturns?: string[];
@@ -66,3 +68,19 @@ export function JavascriptSchema({
       }
     });
 }
+
+export const TypesScriptSchema = z
+  .string()
+  .min(1, "Required")
+  .superRefine(async (ts, ctx) => {
+    try {
+      console.log("validation");
+      const component = await TsxParser({}).parse(ts);
+      if (!component) throw new Error("");
+    } catch (_) {
+      return ctx.addIssue({
+        code: "custom",
+        message: "Invalid typescript",
+      });
+    }
+  });

@@ -19,6 +19,7 @@ import { DialogProps } from "@radix-ui/react-dialog";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useEffect } from "react";
 import { applyTheme } from "@/lib/theme.ts";
+import { PaletteIcon } from "lucide-react";
 
 const colorList = {
   green: "142 72% 42%",
@@ -42,8 +43,7 @@ const colorList = {
 export type ThemeDialogProps = {} & DialogProps;
 
 export function ThemeDialog({ children, ...props }: ThemeDialogProps) {
-  const preferences = usePreference();
-  const colorPrimary = preferences.getItem("color-primary");
+  const [colorPrimary, setColorPrimary] = usePreference("color-primary");
 
   useEffect(() => {
     applyTheme({ colorPrimary });
@@ -52,44 +52,49 @@ export function ThemeDialog({ children, ...props }: ThemeDialogProps) {
   return (
     <Dialog {...props}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="w-full max-w-[320px] h-fit group/dialog">
-      {/* <DialogContent className="w-full sm:max-w-[320px] h-full sm:h-fit group/dialog"> */}
-        <DialogHeader>
-          <DialogTitle>Customize</DialogTitle>
-          <DialogDescription>Change the color palette</DialogDescription>
+      <DialogContent className="w-full sm:max-w-[320px] sm:h-fit group/dialog">
+        {/* <DialogContent className="w-full sm:max-w-[320px] h-full sm:h-fit group/dialog"> */}
+        <DialogHeader className="flex flex-row items-center gap-3">
+          <PaletteIcon className="size-8" />
+          <div>
+            <DialogTitle>Customize</DialogTitle>
+            <DialogDescription>Change the color palette</DialogDescription>
+          </div>
         </DialogHeader>
-        <div className="grid grid-cols-4 gap-4 h-full">
-          {Object.entries(colorList).map(([name, color]) => (
-            <TooltipProvider key={name}>
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "size-12 p-0 rounded-full",
-                      "hover:scale-110 active:scale-90 transition-[transform] mx-auto"
-                    )}
-                    onClick={() => preferences.setItem("color-primary", color)}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="grid grid-cols-4 gap-4 h-fit">
+            {Object.entries(colorList).map(([name, color]) => (
+              <TooltipProvider key={name}>
+                <Tooltip delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "size-12 p-0 rounded-full",
+                        "hover:scale-110 active:scale-90 transition-[transform] mx-auto",
+                      )}
+                      onClick={() => setColorPrimary(color)}
+                      style={{
+                        backgroundColor: `hsl(${color})`,
+                      }}
+                    >
+                      {colorPrimary === color && (
+                        <CheckIcon className="size-8 text-white" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="font-semibold pointer-events-none hidden group-hover/dialog:flex"
                     style={{
                       backgroundColor: `hsl(${color})`,
                     }}
                   >
-                    {colorPrimary === color && (
-                      <CheckIcon className="size-8 text-white" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  className="font-semibold pointer-events-none hidden group-hover/dialog:flex"
-                  style={{
-                    backgroundColor: `hsl(${color})`,
-                  }}
-                >
-                  {name}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ))}
+                    {name}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </div>
         </div>
         <DialogFooter className="grid grid-cols-1 sm:grid-cols-2">
           <div />
