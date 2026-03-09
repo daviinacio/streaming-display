@@ -1,1 +1,1 @@
-export * from "./components/tmux-grid";
+export * from "./components/TmuxGrid";

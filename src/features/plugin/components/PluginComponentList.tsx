@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui";
-import { useEffect } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
 import { PluginRawSchema } from "@/features/plugin/validation/plugin.schema";

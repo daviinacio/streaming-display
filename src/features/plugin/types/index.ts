@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import { PLUGIN_TYPE_OPTIONS } from "../constants/plugin-type.options";
 
 export interface PluginCommon {

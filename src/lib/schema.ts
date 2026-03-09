@@ -1,4 +1,3 @@
-import { transformStringToJsxComponent } from "@/features/plugin/components/DynamicComponent";
 import { z } from "zod/v3";
 import { TsxParser } from "./tsx-parser";
 

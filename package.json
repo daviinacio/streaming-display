@@ -52,6 +52,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-draggable": "^4.5.0",
+    "react-error-boundary": "^6.1.1",
     "react-hls-player": "^3.0.7",
     "react-hook-form": "^7.54.2",
     "react-player": "^3.4.0",

@@ -17,7 +17,6 @@ import { useForm, useFormContext } from "react-hook-form";
 import { Form, FormField } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { CodeEditor } from "@/components/widget";
 import { PluginRawSchema } from "@/features/plugin/validation/plugin.schema";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
 import { zodSchemaDefaults } from "@daviapps/react-utils/form";
@@ -26,6 +25,7 @@ import { DialogProps } from "@radix-ui/react-dialog";
 import { Plug2Icon, PuzzleIcon } from "lucide-react";
 import { usePlugin } from "../hooks/use-plugin";
 import { PluginComponentList } from "./PluginComponentList";
+import { CodeEditor } from "@/components/CodeEditor";
 
 export function PluginEditorDialog({
   children,

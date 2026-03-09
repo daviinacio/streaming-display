@@ -1,45 +1,58 @@
+import { Draggable } from "@/components/Draggable";
+import { GridItemActions } from "@/features/grid/types";
 import { usePlugin } from "@/features/plugin";
 import { PluginMount } from "@/features/plugin/components/PluginMount";
 import { cn, mergeDefined } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { HtmlHTMLAttributes } from "react";
-import ReactPlayer from "react-player";
 import { toast } from "sonner";
 import { StreamProvider } from "../hooks/use-stream";
+import { Player } from "./Player";
 import { PlayerHud } from "./PlayerHud";
-import { Draggable } from "@/components/domains/drag-n-drop/draggable";
 import { StreamDragGhost } from "./StreamDragGhost";
+
+function defaultSourceHandler({ src }: { src: string }) {
+  return {
+    sourceUrl: src,
+  };
+}
 
 export interface StreamProps extends HtmlHTMLAttributes<HTMLDivElement> {
   url: string;
+  grid: GridItemActions;
 }
 
-export function Stream({ url, className, ...props }: StreamProps) {
+export function Stream({ url, className, grid, ...props }: StreamProps) {
   const { findComponentByUrl } = usePlugin();
   const pluginsSourceHandlers = findComponentByUrl(url, "source_handler");
 
   const { data } = useQuery({
-    queryKey: ["handler", url],
+    queryKey: ["handler", url, `${pluginsSourceHandlers.length}_handlers`],
     queryFn: () =>
-      Promise.all(pluginsSourceHandlers.map((fn) => fn({ src: url })))
+      Promise.all(
+        [defaultSourceHandler, ...pluginsSourceHandlers].map((fn) =>
+          fn({ src: url }),
+        ),
+      )
         .then((r) =>
           r.reduce((acc, it) => {
+            if (acc === undefined) return mergeDefined({}, it);
             return mergeDefined(acc, it);
-          }, {}),
+          }, undefined),
         )
         .catch((err) => {
           if (err instanceof Error) {
             return toast.error(err.message);
           } else toast.error(String(err));
         }),
-    refetchOnMount: false,
-    refetchOnReconnect: true,
-    refetchOnWindowFocus: false,
+    refetchOnMount: "always",
+    refetchOnReconnect: "always",
+    refetchOnWindowFocus: "always",
     staleTime: 5 * 60 * 1000,
   });
 
   return (
-    <StreamProvider src={url} handler={data}>
+    <StreamProvider src={url} handler={data} grid={grid}>
       <Draggable
         type="url"
         value={url}
@@ -57,7 +70,7 @@ export function Stream({ url, className, ...props }: StreamProps) {
           <PluginMount
             position="player"
             key={url}
-            fallback={<ReactPlayer src={(data || {}).sourceUrl} />}
+            fallback={<Player src={(data || {}).sourceUrl} />}
           />
         </PlayerHud>
       </Draggable>

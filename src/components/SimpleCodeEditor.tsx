@@ -1,5 +1,5 @@
 import { KeyboardEventHandler, useCallback } from "react";
-import { Textarea, TextareaProps } from "../ui";
+import { Textarea, TextareaProps } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 const tabulationText = "  " as const;
@@ -30,7 +30,7 @@ export function SimpleCodeEditor({ rows, className, ...props }: TextareaProps) {
         document.execCommand("insertText", false, `\n${tabulation}`);
       }
     },
-    []
+    [],
   );
 
   return (
@@ -38,7 +38,7 @@ export function SimpleCodeEditor({ rows, className, ...props }: TextareaProps) {
       data-1p-ignore
       className={cn(
         "resize-none font-mono text-xs whitespace-pre h-full",
-        className
+        className,
       )}
       onKeyDown={handleKeyDown}
       {...props}

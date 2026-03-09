@@ -24,6 +24,7 @@ import { cn, downloadUrl } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
 import {
   FileDownIcon,
+  ImportIcon,
   PencilIcon,
   Plug2Icon,
   PlusCircleIcon,
@@ -34,6 +35,7 @@ import { toast } from "sonner";
 import { usePlugin } from "../hooks/use-plugin";
 import { Plugin } from "../types";
 import { PluginEditorDialog } from "./PluginEditorDialog";
+import { ImportPlugin } from "./ImportPlugin";
 
 export type PluginListDialogProps = PropsWithChildren;
 
@@ -148,15 +150,21 @@ export function PluginListDialog({ children }: PluginListDialogProps) {
           </div>
           <DialogFooter className="sm:justify-between sm:flex-row">
             <div className="grid sm:flex gap-2">
-              {/* <Button type="button" variant="outline" className="gap-2">
-                <ImportIcon className="size-4" />
-                Import
-              </Button> */}
+              <ImportPlugin>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2 w-full"
+                >
+                  <ImportIcon className="size-4" />
+                  Import
+                </Button>
+              </ImportPlugin>
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCreate}
-                className="gap-2"
+                className="gap-2 flex-1"
               >
                 <PlusCircleIcon className="size-4" />
                 Create a new plugin

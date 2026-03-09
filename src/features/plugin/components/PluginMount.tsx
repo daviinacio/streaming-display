@@ -1,7 +1,9 @@
-import { ReactNode, useContext } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+
+import { useStream } from "@/features/stream/hooks/use-stream";
+import { ReactNode } from "react";
 import { usePlugin } from "..";
 import { PLUGIN_TYPE_OPTIONS } from "../constants/plugin-type.options";
-import { StreamContext, useStream } from "@/features/stream/hooks/use-stream";
 
 export interface PluginMountProps {
   position: PLUGIN_TYPE_OPTIONS;
@@ -22,8 +24,20 @@ export function PluginMount({
 
   if (components.length === 0 && fallback) return fallback;
 
-  return components.map((Component, i) => {
-    const component = <Component key={i} {...context} {...props} />;
-    return (renderComponent && renderComponent(component)) || component;
-  });
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="flex flex-col items-center justify-center">
+          <span className="font-bold text-destructive">
+            Failed to load component
+          </span>
+        </div>
+      }
+    >
+      {components.map((Component, i) => {
+        const component = <Component key={i} {...context} {...props} />;
+        return (renderComponent && renderComponent(component)) || component;
+      })}
+    </ErrorBoundary>
+  );
 }

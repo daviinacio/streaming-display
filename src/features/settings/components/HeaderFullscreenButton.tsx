@@ -1,5 +1,5 @@
+import { HeaderButton } from "@/components/HeaderButton";
 import { ButtonProps } from "@/components/ui";
-import { HeaderButton } from "@/components/widget";
 import { useSessionState } from "@daviapps/react-utils/hooks";
 import { EnterFullScreenIcon, ExitFullScreenIcon } from "@radix-ui/react-icons";
 import { useCallback, useEffect } from "react";

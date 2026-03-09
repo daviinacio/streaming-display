@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from "react";
-import { ButtonProps } from "../ui";
-import { HeaderButton } from "./header-button";
 import { ExpandIcon, ShrinkIcon } from "lucide-react";
 import { usePreference } from "@/hooks/use-preference";
+import { ButtonProps } from "@/components/ui";
+import { HeaderButton } from "@/components/HeaderButton";
 
 export function ToggleFitVideoButton(props: ButtonProps) {
   const [fitVideo, setFitVideo] = usePreference("fit-video");

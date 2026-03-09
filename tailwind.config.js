@@ -8,9 +8,9 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   safelist: [
-    // {
-    //   pattern: /./,
-    // },
+    {
+      pattern: /./,
+    },
     // {
     //   pattern: /(bg|text|border)-(red|blue|green|gray)-(100|200|300|400|500|600|700|800|900)/,
     // },

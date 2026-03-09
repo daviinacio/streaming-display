@@ -1,4 +1,4 @@
-import { Player } from "@/features/stream";
+import { Player, PlayerHudAction } from "@/features/stream";
 import { TsxParser } from "@/lib/tsx-parser";
 import { cn } from "@/lib/utils";
 import * as Lucide from "lucide-react";
@@ -15,6 +15,7 @@ export async function parsePluginComponent(code: string) {
       { name: "Twitch", content: window.Twitch },
       { name: "cn", content: cn },
       { name: "Lucide", content: Lucide },
+      { name: "PlayerHudAction", content: PlayerHudAction },
     ],
   });
   return await parse(code);

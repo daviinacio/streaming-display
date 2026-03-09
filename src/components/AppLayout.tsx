@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
-import { AppHeader } from "../layout-fragment/AppHeader";
-import { ForcedSize } from "../ui";
+import { ForcedSize } from "./ui";
+import { AppHeader } from "./AppHeader";
 
 export default function AppLayout() {
   return (

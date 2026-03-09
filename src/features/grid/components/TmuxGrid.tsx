@@ -1,5 +1,4 @@
 import { cn, generateId } from "@/lib/utils";
-import { useSessionState } from "@daviapps/react-utils/hooks";
 import { produce } from "immer";
 // TmuxGrid.tsx
 import React, {
@@ -8,51 +7,56 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { flattenTree } from "../lib";
-import { AddDirection, FlatPane, FlatResizer, TreeNode } from "../types";
-
-const initialTree: TreeNode = {
-  type: "pane",
-  id: "root",
-  content: "",
-};
+import {
+  AddDirection,
+  FlatPane,
+  FlatResizer,
+  GridItemActions,
+  SplitDirection,
+  TreeNode,
+} from "../types";
 
 export interface TmuxGridProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   "children"
 > {
+  tree: TreeNode;
+  onTreeChange: React.Dispatch<React.SetStateAction<TreeNode>>;
   renderItem: (props: {
     content: string;
     empty: boolean;
     list: FlatPane[];
-    add: (direction: AddDirection, content: string) => void;
-    set: (newContent: string) => void;
-    swap: (content: string) => void;
-    move: (direction: AddDirection, content: string) => void;
-    remove: () => void;
+    actions: GridItemActions;
   }) => ReactNode;
 }
 
 export const TmuxGrid: React.FC<TmuxGridProps> = ({
+  tree,
+  onTreeChange,
   renderItem,
   className,
   ...props
 }) => {
-  const [tree, setTree] = useSessionState<TreeNode>({
-    key: "tmux-grid",
-    initialState: initialTree,
-  });
   const containerRef = useRef<HTMLDivElement>(null);
+  const [animate, setAnimate] = useState(true);
+  const [maximizedPaneId, setMaximizedPaneId] = useState<string | null>(null);
 
   // Estado para gerenciar o arrasto do resizer
   const draggingRef = useRef<{
     id: string;
+    direction: SplitDirection;
     startX: number;
     startY: number;
     startRatio: number;
     splitW: number;
-    splitH: number; // <-- NOVO
+    splitH: number;
+    initialPos: number; // NOVO: Posição absoluta inicial do resizer (em %)
+    parentStart: number; // NOVO: Onde o contêiner pai começa (em %)
+    snapLines: number[]; // NOVO: Array de coordenadas magnéticas
+    hasMoved: boolean;
   } | null>(null);
 
   // Funções auxiliares (fora do componente ou antes do return)
@@ -75,7 +79,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
 
   // Dentro do componente TmuxGrid
   const handleResetHandles = () => {
-    setTree((currentTree) => {
+    onTreeChange((currentTree) => {
       return produce(currentTree, (draft) => {
         equalizeTree(draft);
       });
@@ -88,7 +92,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     direction: AddDirection,
     content: string,
   ) => {
-    setTree((currentTree) => {
+    onTreeChange((currentTree) => {
       return produce(currentTree, (draft) => {
         // Função recursiva para encontrar o alvo e criar o Split
         const splitNode = (node: any): boolean => {
@@ -137,7 +141,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
   const handleSwapNodes = (id1: string, id2: string) => {
     if (id1 === id2) return;
 
-    setTree((currentTree) => {
+    onTreeChange((currentTree) => {
       return produce(currentTree, (draft) => {
         let parent1: any = null;
         let key1: "first" | "second" | null = null;
@@ -196,7 +200,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     // 1. Evita mover um painel para o lado dele mesmo
     if (sourceId === targetId) return;
 
-    setTree((currentTree) => {
+    onTreeChange((currentTree) => {
       // 2. Se a tela só tem 1 painel (o root), não há para onde mover
       if (currentTree.type === "pane") return currentTree;
 
@@ -272,7 +276,11 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
 
   // --- LÓGICA DE REMOVER (FECHAR) TILE ---
   const handleRemoveTile = (targetId: string) => {
-    setTree((currentTree) => {
+    if (maximizedPaneId === targetId) {
+      setMaximizedPaneId(null);
+    }
+
+    onTreeChange((currentTree) => {
       // Regra de segurança: Não permitimos deletar se for o último painel
       if (currentTree.type === "pane") return currentTree;
 
@@ -304,7 +312,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
 
   // --- LÓGICA DE ATUALIZAR CONTEÚDO DO TILE ---
   const handleUpdateTile = (targetId: string, newContent: string) => {
-    setTree((currentTree) => {
+    onTreeChange((currentTree) => {
       return produce(currentTree, (draft) => {
         // Função recursiva para encontrar o alvo e atualizar
         const updateNode = (node: any): boolean => {
@@ -324,7 +332,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     });
   };
 
-  // --- LÓGICA DE REDIMENSIONAMENTO ---
+  // --- LÓGICA DE INICIAR O ARRASTO ---
   const startDrag = (e: React.MouseEvent, resizer: FlatResizer) => {
     let startRatio = 0.5;
     const findRatio = (node: TreeNode) => {
@@ -338,48 +346,98 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     };
     findRatio(tree);
 
+    const isV = resizer.direction === "V";
+
+    // 1. Coleta as coordenadas de TODOS os outros resizers na mesma direção
+    const snapLines = resizers
+      .filter((r) => r.id !== resizer.id && r.direction === resizer.direction)
+      .map((r) => (isV ? r.x : r.y));
+
+    // BÔNUS: Adiciona uma força magnética invisível exatamente no centro da tela (50%)!
+    // Isso ajuda o usuário a voltar os painéis para o meio perfeito sem precisar do botão de reset.
+    snapLines.push(50);
+
+    // 2. Calcula onde o contêiner "pai" deste resizer começa na tela
+    const parentStart = isV
+      ? resizer.x - startRatio * resizer.splitW
+      : resizer.y - startRatio * resizer.splitH;
+
     draggingRef.current = {
       id: resizer.id,
+      direction: resizer.direction,
       startX: e.clientX,
       startY: e.clientY,
       startRatio,
-      splitW: resizer.splitW, // <-- Salva a largura
-      splitH: resizer.splitH, // <-- Salva a altura
+      splitW: resizer.splitW,
+      splitH: resizer.splitH,
+      initialPos: isV ? resizer.x : resizer.y,
+      parentStart,
+      snapLines,
+      hasMoved: false,
     };
   };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!draggingRef.current || !containerRef.current) return;
+      setAnimate(false);
 
-      const { id, startX, startY, startRatio, splitW, splitH } =
-        draggingRef.current;
+      const {
+        id,
+        direction,
+        startX,
+        startY,
+        splitW,
+        splitH,
+        initialPos,
+        parentStart,
+        snapLines,
+      } = draggingRef.current;
+
       const rect = containerRef.current.getBoundingClientRect();
 
-      setTree(
+      // FORÇA DO ÍMÃ: Se o mouse chegar a 1.5% de distância de outra linha, ele gruda!
+      const SNAP_THRESHOLD = 1.5;
+
+      onTreeChange(
         produce((draft) => {
           const updateRatio = (node: any) => {
             if (node.type === "split") {
               if (node.id === id) {
-                if (node.direction === "V") {
-                  const deltaX = e.clientX - startX;
-                  const deltaGlobalRatio = deltaX / rect.width;
-                  // Divide a delta global pela proporção do contêiner!
-                  const deltaRatio = deltaGlobalRatio / (splitW / 100);
-                  node.ratio = Math.max(
-                    0.1,
-                    Math.min(0.9, startRatio + deltaRatio),
-                  );
+                let newRatio = 0.5;
+
+                if (direction === "V") {
+                  // Converte o movimento de pixels para porcentagem global
+                  const deltaX_pct = ((e.clientX - startX) / rect.width) * 100;
+                  let proposedX = initialPos + deltaX_pct;
+
+                  // APLICA O MAGNETISMO
+                  for (const line of snapLines) {
+                    if (Math.abs(proposedX - line) < SNAP_THRESHOLD) {
+                      proposedX = line; // GRUDOU!
+                      break;
+                    }
+                  }
+
+                  // Converte a coordenada global de volta para a proporção local (ratio) do contêiner
+                  newRatio = (proposedX - parentStart) / splitW;
                 } else {
-                  const deltaY = e.clientY - startY;
-                  const deltaGlobalRatio = deltaY / rect.height;
-                  // Divide a delta global pela proporção do contêiner!
-                  const deltaRatio = deltaGlobalRatio / (splitH / 100);
-                  node.ratio = Math.max(
-                    0.1,
-                    Math.min(0.9, startRatio + deltaRatio),
-                  );
+                  // Mesma lógica para a vertical (linhas horizontais)
+                  const deltaY_pct = ((e.clientY - startY) / rect.height) * 100;
+                  let proposedY = initialPos + deltaY_pct;
+
+                  for (const line of snapLines) {
+                    if (Math.abs(proposedY - line) < SNAP_THRESHOLD) {
+                      proposedY = line; // GRUDOU!
+                      break;
+                    }
+                  }
+
+                  newRatio = (proposedY - parentStart) / splitH;
                 }
+
+                // Trava entre 0.05 e 0.95 para o painel não sumir (5% mínimo)
+                node.ratio = Math.max(0.05, Math.min(0.95, newRatio));
               } else {
                 updateRatio(node.first);
                 updateRatio(node.second);
@@ -388,11 +446,15 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
           };
           updateRatio(draft);
         }),
+        // @ts-ignore
+        { overwrite: draggingRef.current.hasMoved },
       );
+      draggingRef.current.hasMoved = true;
     };
 
     const handleMouseUp = () => {
       draggingRef.current = null;
+      setAnimate(true);
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -418,40 +480,63 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
       {...props}
     >
       {/* RENDERIZAÇÃO DOS PAINÉIS (TILES) */}
-      {panes.map((pane) => (
-        <div
-          key={pane.content}
-          className="flex flex-col p-0 relative"
-          style={{
-            position: "absolute",
-            left: `${pane.x}%`,
-            top: `${pane.y}%`,
-            width: `${pane.w}%`,
-            height: `${pane.h}%`,
-            // border: "1px solid ",
-            boxSizing: "border-box",
-            color: "white",
-          }}
-        >
-          {renderItem({
-            content: pane.content,
-            empty: panes.filter((it) => it.content !== "").length === 0,
-            list: panes,
-            add: (direction, content) =>
-              handleAddTile(pane.id, direction, content),
-            set: (newContent: string) => handleUpdateTile(pane.id, newContent),
-            swap: (content) => handleSwapNodesByContent(content, pane.content),
-            move(direction, sourceContent) {
-              const sourceId = panes.find(
-                (it) => it.content === sourceContent,
-              )?.id;
-              if (!sourceId) return;
-              handleMoveTile(sourceId, pane.id, direction);
-            },
-            remove: () => handleRemoveTile(pane.id),
-          })}
-        </div>
-      ))}
+      {panes.map((pane) => {
+        const isMaximized = maximizedPaneId === pane.id;
+        const isHidden = maximizedPaneId !== null && !isMaximized;
+
+        return (
+          <div
+            key={pane.content}
+            className={cn(
+              "flex flex-col p-0 relative ",
+              animate && "transition-all duration-300",
+            )}
+            style={{
+              position: "absolute",
+              left: isMaximized ? "0%" : `${pane.x}%`,
+              top: isMaximized ? "0%" : `${pane.y}%`,
+              width: isMaximized ? "100%" : `${pane.w}%`,
+              height: isMaximized ? "100%" : `${pane.h}%`,
+              zIndex: isMaximized ? 50 : undefined,
+
+              opacity: isHidden ? 0 : 1,
+              pointerEvents: isHidden ? "none" : "auto",
+              // border: "1px solid ",
+              boxSizing: "border-box",
+              color: "white",
+            }}
+          >
+            {renderItem({
+              content: pane.content,
+              empty: panes.filter((it) => it.content !== "").length === 0,
+              list: panes,
+              actions: {
+                add: (direction, content) =>
+                  handleAddTile(pane.id, direction, content),
+                set: (newContent: string) =>
+                  handleUpdateTile(pane.id, newContent),
+                swap: (content) =>
+                  handleSwapNodesByContent(content, pane.content),
+                move(direction, sourceContent) {
+                  const sourceId = panes.find(
+                    (it) => it.content === sourceContent,
+                  )?.id;
+                  if (!sourceId) return;
+                  handleMoveTile(sourceId, pane.id, direction);
+                },
+                remove: () => {
+                  if (panes.length === 1) return handleUpdateTile(pane.id, "");
+                  handleRemoveTile(pane.id);
+                },
+                toggleMaximize() {
+                  if (maximizedPaneId === pane.id) setMaximizedPaneId(null);
+                  else setMaximizedPaneId(pane.id);
+                },
+              },
+            })}
+          </div>
+        );
+      })}
 
       {/* RENDERIZAÇÃO DOS RESIZERS */}
       {resizers.map((resizer) => {
@@ -459,7 +544,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
         return (
           <div
             key={`resizer-${resizer.id}`}
-            onMouseDown={(e) => startDrag(e, resizer)} // <-- MUDE DE resizer.id PARA resizer
+            onMouseDown={(e) => startDrag(e, resizer)}
             onDoubleClick={handleResetHandles}
             className="absolute active:bg-primary/70 transition-colors"
             style={{
@@ -470,6 +555,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
               transform: isV ? "translateX(-50%)" : "translateY(-50%)",
               cursor: isV ? "col-resize" : "row-resize",
               zIndex: 10,
+              display: maximizedPaneId !== null ? "none" : "block",
             }}
           />
         );

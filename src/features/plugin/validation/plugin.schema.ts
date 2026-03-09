@@ -1,4 +1,3 @@
-import { TypesScriptSchema } from "@/lib/schema";
 import { z } from "zod/v3";
 import { parsePluginComponent } from "../lib/parse-plugin-component";
 

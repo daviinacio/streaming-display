@@ -6,7 +6,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
 } from "react";
 import { toast } from "sonner";
 
@@ -44,8 +43,6 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
     ref,
   ) => {
     const dropRef = useRef<HTMLDivElement>(null);
-    const [isDragging, setIsDragging] = useState(false);
-    // useImperativeHandle(, () => dropRef.current!, []);
     const { notifyDrop, getDragState } = useMultiInstanceDrag();
 
     const calcDragPosition = useCallback(
@@ -101,7 +98,6 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
       }
 
       function handleDrop(e: DragEvent) {
-        setIsDragging(false);
         e.preventDefault();
         e.stopPropagation();
 
@@ -141,7 +137,6 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
       }
 
       function handleDragOver(e: DragEvent) {
-        setIsDragging(true);
         e.preventDefault();
         e.stopPropagation();
 

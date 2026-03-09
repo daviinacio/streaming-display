@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import AppLayout from "./components/layouts/AppLayout";
+import AppLayout from "./components/AppLayout";
 
 const GridView = lazy(() => import("@/pages/GridView"));
 

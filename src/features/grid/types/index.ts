@@ -36,3 +36,12 @@ export interface FlatResizer {
   splitW: number; // <-- NOVO: Largura do contêiner em %
   splitH: number; // <-- NOVO: Altura do contêiner em %
 }
+
+export interface GridItemActions {
+  add: (direction: AddDirection, content: string) => void;
+  set: (newContent: string) => void;
+  swap: (content: string) => void;
+  move: (direction: AddDirection, content: string) => void;
+  remove: () => void;
+  toggleMaximize: () => void;
+}
