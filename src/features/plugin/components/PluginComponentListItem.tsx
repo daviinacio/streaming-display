@@ -37,7 +37,7 @@ export function PluginComponentListItem({
   const form = useFormContext<PluginRawSchema>();
   const alert = useAlertDialog();
 
-  const { name, isEdit, isDirty } = form.watch(`components.${index}`);
+  const { name, isEdit, isDirty } = form.watch(`components.${index}`) || {};
 
   const [isSelectTypeOpen, setIsSelectTypeOpen] = useState(!isDirty);
 

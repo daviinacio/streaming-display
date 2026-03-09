@@ -4,6 +4,7 @@ import prism from "vite-plugin-prismjs";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
 import { defineConfig } from "vite";
 import pkg from "./package.json";
+import inject from "@rollup/plugin-inject";
 
 const packages: { [key in string]: string[] } = {};
 const packageKeys = Object.keys(packages) as Array<keyof typeof packages>;
@@ -11,7 +12,6 @@ const packageKeys = Object.keys(packages) as Array<keyof typeof packages>;
 export default defineConfig({
   build: {
     rollupOptions: {
-      // external: ["react-player"],
       output: {
         manualChunks: (id: string) => {
           const packageName = packageKeys.find((pkg) =>
@@ -22,11 +22,19 @@ export default defineConfig({
           else if (id.includes("/pages/")) return;
           return "index";
         },
+        plugins: [
+          inject({
+            Buffer: ["buffer", "Buffer"],
+          }),
+        ],
       },
     },
   },
   define: {
     "process.env": {},
+  },
+  optimizeDeps: {
+    include: ["buffer"],
   },
   plugins: [
     react(),

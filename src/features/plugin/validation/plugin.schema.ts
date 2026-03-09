@@ -16,7 +16,6 @@ export const PluginRawSchema = z.object({
         .min(1, "Required")
         .superRefine(async (ts, ctx) => {
           try {
-            console.log("validation");
             const component = await parsePluginComponent(ts);
             if (!component) throw new Error("");
             // component({});

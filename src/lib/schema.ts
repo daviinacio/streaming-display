@@ -73,7 +73,6 @@ export const TypesScriptSchema = z
   .min(1, "Required")
   .superRefine(async (ts, ctx) => {
     try {
-      console.log("validation");
       const component = await TsxParser({}).parse(ts);
       if (!component) throw new Error("");
     } catch (_) {

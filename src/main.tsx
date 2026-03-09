@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import "./style/global.css";
+import "./polyfill";
 
 import { Providers } from "@/providers";
 import AppRouter from "./router";

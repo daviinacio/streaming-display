@@ -169,12 +169,6 @@ export function CodeEditor({
     // 4. Inicialização do Highlighter (Highlighter + Babel)
     (async () => {
       try {
-        // Polyfill do Buffer para o Babel
-        if (typeof window !== "undefined" && !window.Buffer) {
-          const { Buffer } = await import("buffer");
-          window.Buffer = Buffer;
-        }
-
         // Imports dinâmicos
         const { parse } = await import("@babel/parser");
         const traverse = (await import("@babel/traverse")).default;

@@ -13,19 +13,19 @@ import {
 } from "@/components/ui";
 import { useCallback, useEffect, useState } from "react";
 import { useForm, useFormContext } from "react-hook-form";
+import { zodSchemaDefaults } from "@daviapps/react-utils/form";
 
+import { CodeEditor } from "@/components/CodeEditor";
 import { Form, FormField } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { PluginRawSchema } from "@/features/plugin/validation/plugin.schema";
 import { useIsDesktop } from "@/hooks/use-is-desktop";
-import { zodSchemaDefaults } from "@daviapps/react-utils/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogProps } from "@radix-ui/react-dialog";
 import { Plug2Icon, PuzzleIcon } from "lucide-react";
 import { usePlugin } from "../hooks/use-plugin";
 import { PluginComponentList } from "./PluginComponentList";
-import { CodeEditor } from "@/components/CodeEditor";
 
 export function PluginEditorDialog({
   children,
@@ -58,7 +58,7 @@ export function PluginEditorDialog({
   );
 
   useEffect(() => {
-    if (!id) return form.reset();
+    if (!id) return form.reset(zodSchemaDefaults(PluginRawSchema));
 
     const pluginRaw = findPluginRawById(id);
     if (!pluginRaw) return;
@@ -128,7 +128,7 @@ export function PluginEditorDialog({
                   </div>
                 )}
 
-                {form.watch("components").map((_, i) => (
+                {(form.watch("components") || []).map((_, i) => (
                   <TabsContent
                     key={i}
                     value={String(i)}
