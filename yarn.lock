@@ -343,10 +343,10 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.28.5"
 
-"@daviapps/react-utils@^0.0.9":
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/@daviapps/react-utils/-/react-utils-0.0.9.tgz#badc01d21a9c9281cdc614eec57f1ce9773a04b5"
-  integrity sha512-muunG5MIQbYAznm5Y81HPGAhuXBrCCE8awvKBO+wFkRrm0XvnFi4SnbR5zWVneuFwFIGBmlgS6K2R8jGooUMeQ==
+"@daviapps/react-utils@^0.0.11":
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/@daviapps/react-utils/-/react-utils-0.0.11.tgz#6a6d35edc600e25004517d45396b046149b45830"
+  integrity sha512-CtgudhQXw6OiY3Tj972/eMRz9KiIl0KuDylK2fnafzlAwR1nD2ad3q4BGpVLIvamfyUO9gouekUbJJrkprO4oA==
 
 "@esbuild/aix-ppc64@0.21.5":
   version "0.21.5"
