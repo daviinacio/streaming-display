@@ -43,9 +43,7 @@ export function Stream({ url, className, grid, ...props }: StreamProps) {
       ),
     refetchOnMount: "always",
     // refetchOnReconnect: "always",
-    refetchOnWindowFocus: (query) => {
-      return query.state.status === "error";
-    },
+    refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
   });
 

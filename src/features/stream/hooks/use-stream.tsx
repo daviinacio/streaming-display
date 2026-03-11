@@ -54,24 +54,24 @@ export function StreamProvider({
   refresh,
   ...props
 }: StreamProviderProps) {
+  const [preferenceFitVideo] = usePreference("fit-video");
   const [playerState, setPlayerState] = useLocalState({
     key: `player-state-${props.src}`,
     initialState: {
-      playing: true,
       muted: true,
       volume: 0.5,
       pip: false,
-      fit: false,
+      fit: preferenceFitVideo,
     },
   });
 
   const [playerTempState, setPlayerTempState] = useState({
+    playing: true,
     buffering: false,
   });
 
   const [lastPos, setLastPos] = useState(0);
   const [refreshCoolDown, setRefreshCoolDown] = useState(false);
-  const [preferenceFitVideo] = usePreference("fit-video");
 
   useUpdateEffect(() => {
     setPlayerState((p) => ({ ...p, fit: preferenceFitVideo }));
@@ -95,7 +95,7 @@ export function StreamProvider({
     onProgress: (state) => {
       // console.log("onProgress", state);
       if (
-        playerState.playing &&
+        playerTempState.playing &&
         state.timeStamp === lastPos &&
         state.timeStamp !== 0
       ) {
@@ -123,13 +123,13 @@ export function StreamProvider({
 
     // Custom actions
     togglePlaying() {
-      setPlayerState((p) => ({ ...p, playing: !p.playing }));
+      setPlayerTempState((p) => ({ ...p, playing: !p.playing }));
     },
     play() {
-      setPlayerState((p) => ({ ...p, playing: true }));
+      setPlayerTempState((p) => ({ ...p, playing: true }));
     },
     pause() {
-      setPlayerState((p) => ({ ...p, playing: false }));
+      setPlayerTempState((p) => ({ ...p, playing: false }));
     },
     toggleMuted() {
       setPlayerState((p) => ({ ...p, muted: !p.muted }));
