@@ -56,6 +56,7 @@ export function PlayerHud({ children, className, ...props }: PlayerHudProps) {
       </div>
       <div
         className={cn(
+          "absolute inset-0 z-20 flex flex-col pointer-events-none",
           "[&_[data-visibility]]:transition-opacity [&_[data-visibility]]:duration-500",
           // Default visibility
           "[&_[data-visibility=default]]:opacity-0",
@@ -65,6 +66,7 @@ export function PlayerHud({ children, className, ...props }: PlayerHudProps) {
         )}
       >
         <PlayerHudHeader />
+        <div className="flex-1 pointer-events-none" />
         <PlayerHudControls />
       </div>
     </div>

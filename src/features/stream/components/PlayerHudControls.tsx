@@ -32,8 +32,8 @@ export function PlayerHudControls() {
     <div
       role="player-hud-controls"
       className={cn(
-        "absolute bottom-0 left-0 right-0 z-20",
-        "flex items-center justify-between",
+        // "absolute bottom-0 left-0 right-0 z-20",
+        "flex items-center justify-between pointer-events-auto",
         "p-1 transition-all duration-300",
         "z-20 from-transparent to-transparent bg-gradient-to-t group-hover/player:from-black/80 duration-300",
         // "!pointer-events-none",

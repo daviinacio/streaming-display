@@ -37,6 +37,8 @@ export interface StreamContextState {
     toggleFit: () => void;
   };
   refresh?: () => void;
+  extra: { [key: string]: any };
+  setExtra: (key: string, value: any) => void;
 }
 
 export const StreamContext = createContext<StreamContextState | null>(null);
@@ -69,6 +71,8 @@ export function StreamProvider({
     playing: true,
     buffering: false,
   });
+
+  const [extra, setExtra] = useState<StreamContextState["extra"]>({});
 
   const [lastPos, setLastPos] = useState(0);
   const [refreshCoolDown, setRefreshCoolDown] = useState(false);
@@ -154,9 +158,18 @@ export function StreamProvider({
     });
   }, [refresh]);
 
+  const handleSetExtra = useCallback<StreamContextState["setExtra"]>(
+    (key, value) => {
+      setExtra((p) => ({ ...p, [key]: value }));
+    },
+    [],
+  );
+
   return (
     <StreamContext.Provider
       value={{
+        extra,
+        setExtra: handleSetExtra,
         player,
         refresh: refreshCoolDown ? undefined : handleRefresh,
         ...props,

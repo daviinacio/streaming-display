@@ -13,8 +13,8 @@ export function PlayerHudHeader() {
     <div
       role="player-hud-header"
       className={cn(
-        "absolute top-0 left-0 right-0",
-        "flex items-center justify-between",
+        // "absolute top-0 left-0 right-0",
+        "flex items-center justify-between pointer-events-auto",
         "p-1 pl-3 transition-all duration-300",
         "z-20 from-transparent to-transparent bg-gradient-to-b group-hover/player:from-black/80",
         " pointer-events-none",
