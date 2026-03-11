@@ -1,1 +1,41 @@
-export default {"id":"twitch-builtin","components":[{"enabled":true,"name":"Player","type":"player","code":"export default function TwitchPlayer({ src, player, ...props }) {\n  const [hasStarted, setHasStarted] = React.useState(false);\n  const [playing, setPlaying] = React.useState(false);\n\n  React.useEffect(() => {\n    if (!player.playing) return setPlaying(false);\n    setHasStarted(false);\n  }, [player.playing]);\n\n  React.useEffect(() => {\n    if (hasStarted) return;\n    setPlaying(false);\n    const timeout = setTimeout(() => setPlaying(true), 1000);\n    return () => clearTimeout(timeout);\n  }, [hasStarted]);\n  \n  return (\n    <Player\n      {...props}\n      {...player}\n      src={src}\n      playing={playing}\n      onPlaying={() => setHasStarted(true)}\n      style={{ zIndex: hasStarted ? 1 : 9999999, pointerEvents: hasStarted ? \"none\" : \"auto\" }}\n    />\n  )\n}\n ","isEdit":false,"isDirty":true},{"enabled":true,"name":"Source Handler","type":"source_handler","code":"export default function ({ src }) {\n  let streamer = src.split(\"/\")[3] || \"\";\n  streamer = (streamer && streamer.split('?')[0]) || \"\";\n\n  return {\n    title: streamer\n  }\n}","isEdit":false,"isDirty":true},{"enabled":true,"name":"Chat Button","type":"controls_right","code":"const { MessageSquareOff, MessageSquareText } = Lucide;\nexport default function ({ src, setExtra, extra, ...props }) {\n  const [open, setOpen] = React.useState(false);\n  const name = (new URL(src)).pathname.split('/')[1];\n\n  return <>\n    \n    <PlayerHudAction\n      onClick={() => setExtra(\"chatOpen\", !extra.chatOpen)}\n      {...props}\n    >\n      {extra.chatOpen ?\n        <MessageSquareOff /> :\n        <MessageSquareText />\n      }\n    </PlayerHudAction>\n  </>\n}","isEdit":false,"isDirty":true},{"enabled":true,"name":"Chat Frame","type":"player","code":"export default function ({ src, handler, extra, ...props }) {\n  const channel = (new URL(src)).pathname.split('/')[1];\n  return (\n    <iframe\n      width=\"300px\"\n      style={{ zIndex: 15, top: 42, right: 0, height: \"calc(100% - 90px)\" }}\n      className={cn(\n        \"absolute  pointer-events-auto rounded-lg\",\n        !extra.chatOpen && \"hidden\"\n      )}\n      src={`https://www.twitch.tv/embed/${channel}/chat?parent=${location.hostname}`}\n    />\n  )\n}","isEdit":false,"isDirty":true}],"enabled":true,"match":["https://www.twitch.tv/*"],"name":"Twitch","isBuiltin":false}
+export default {
+  id: "twitch",
+  components: [
+    {
+      enabled: true,
+      name: "Player",
+      type: "player",
+      code: 'export default function TwitchPlayer({ src, player, ...props }) {\n  const [hasStarted, setHasStarted] = React.useState(false);\n  const [playing, setPlaying] = React.useState(false);\n\n  React.useEffect(() => {\n    if (!player.playing) return setPlaying(false);\n    setHasStarted(false);\n  }, [player.playing]);\n\n  React.useEffect(() => {\n    if (hasStarted) return;\n    setPlaying(false);\n    const timeout = setTimeout(() => setPlaying(true), 1000);\n    return () => clearTimeout(timeout);\n  }, [hasStarted]);\n  \n  return (\n    <Player\n      {...props}\n      {...player}\n      src={src}\n      playing={playing}\n      onPlaying={() => setHasStarted(true)}\n      style={{ zIndex: hasStarted ? 1 : 9999999, pointerEvents: hasStarted ? "none" : "auto" }}\n    />\n  )\n}\n ',
+      isEdit: false,
+      isDirty: true,
+    },
+    {
+      enabled: true,
+      name: "Source Handler",
+      type: "source_handler",
+      code: 'export default function ({ src }) {\n  let streamer = src.split("/")[3] || "";\n  streamer = (streamer && streamer.split(\'?\')[0]) || "";\n\n  return {\n    title: streamer\n  }\n}',
+      isEdit: false,
+      isDirty: true,
+    },
+    {
+      enabled: true,
+      name: "Chat Button",
+      type: "controls_right",
+      code: "const { MessageSquareOff, MessageSquareText } = Lucide;\nexport default function ({ src, setExtra, extra, ...props }) {\n  const [open, setOpen] = React.useState(false);\n  const name = (new URL(src)).pathname.split('/')[1];\n\n  return <>\n    \n    <PlayerHudAction\n      onClick={() => setExtra(\"chatOpen\", !extra.chatOpen)}\n      {...props}\n    >\n      {extra.chatOpen ?\n        <MessageSquareOff /> :\n        <MessageSquareText />\n      }\n    </PlayerHudAction>\n  </>\n}",
+      isEdit: false,
+      isDirty: true,
+    },
+    {
+      enabled: true,
+      name: "Chat Frame",
+      type: "player",
+      code: 'export default function ({ src, handler, extra, ...props }) {\n  const channel = (new URL(src)).pathname.split(\'/\')[1];\n  return (\n    <iframe\n      width="300px"\n      style={{ zIndex: 15, top: 42, right: 0, height: "calc(100% - 90px)" }}\n      className={cn(\n        "absolute  pointer-events-auto rounded-lg",\n        !extra.chatOpen && "hidden"\n      )}\n      src={`https://www.twitch.tv/embed/${channel}/chat?parent=${location.hostname}`}\n    />\n  )\n}',
+      isEdit: false,
+      isDirty: true,
+    },
+  ],
+  enabled: true,
+  match: ["https://www.twitch.tv/*"],
+  name: "Twitch",
+  isBuiltin: false,
+};

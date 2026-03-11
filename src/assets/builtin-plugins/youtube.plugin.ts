@@ -1,5 +1,5 @@
 export default {
-  id: "youtube-builtin",
+  id: "youtube",
   components: [
     {
       enabled: false,

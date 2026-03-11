@@ -50,3 +50,21 @@ export function flattenTree(
   }
   return { panes, resizers };
 }
+
+// Funções auxiliares (fora do componente ou antes do return)
+export const getWeight = (node: any, dir: "V" | "H"): number => {
+  if (node.type === "pane") return 1;
+  if (node.direction === dir) {
+    return getWeight(node.first, dir) + getWeight(node.second, dir);
+  }
+  return 1;
+};
+
+export const equalizeTree = (node: any) => {
+  if (node.type === "pane") return;
+  equalizeTree(node.first);
+  equalizeTree(node.second);
+  const w1 = getWeight(node.first, node.direction);
+  const w2 = getWeight(node.second, node.direction);
+  node.ratio = w1 / (w1 + w2);
+};

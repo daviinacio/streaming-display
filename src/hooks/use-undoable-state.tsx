@@ -15,7 +15,6 @@ export function useUndoableState<T>(initialValue: T, sessionStateKey?: string) {
       })
     : useState(initialState);
 
-  // O set agora aceita um segundo parâmetro opcional
   const set = useCallback(
     (
       newPresent: T | ((current: T) => T),
@@ -27,18 +26,21 @@ export function useUndoableState<T>(initialValue: T, sessionStateKey?: string) {
             ? (newPresent as Function)(currentHistory.present)
             : newPresent;
 
-        if (resolvedPresent === currentHistory.present) return currentHistory;
+        // Checa se a referência mudou (se for a mesma, o React/Immer acha que nada mudou)
+        if (resolvedPresent === currentHistory.present) {
+          console.groupEnd();
+          return currentHistory;
+        }
 
-        // Se overwrite for true, atualizamos o presente mas NÃO mexemos no passado
         if (options?.overwrite) {
+          console.groupEnd();
           return {
             ...currentHistory,
             present: resolvedPresent,
-            future: [], // Qualquer nova ação apaga o futuro (redo)
+            future: [],
           };
         }
 
-        // Comportamento normal: salva o estado anterior no passado
         return {
           past: [...currentHistory.past, currentHistory.present],
           present: resolvedPresent,
@@ -46,12 +48,14 @@ export function useUndoableState<T>(initialValue: T, sessionStateKey?: string) {
         };
       });
     },
-    [],
+    [setHistory],
   );
 
   const undo = useCallback(() => {
     setHistory((currentHistory) => {
-      if (currentHistory.past.length === 0) return currentHistory;
+      if (currentHistory.past.length === 0) {
+        return currentHistory;
+      }
 
       const previous = currentHistory.past[currentHistory.past.length - 1];
       const newPast = currentHistory.past.slice(
@@ -82,5 +86,13 @@ export function useUndoableState<T>(initialValue: T, sessionStateKey?: string) {
     });
   }, []);
 
-  return { state: history.present, set, undo, redo, history };
+  const reset = useCallback((newPresent: T) => {
+    setHistory({
+      past: [],
+      present: newPresent,
+      future: [],
+    });
+  }, []);
+
+  return { state: history.present, set, undo, redo, history, reset };
 }

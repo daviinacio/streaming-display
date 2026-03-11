@@ -1,6 +1,8 @@
 import { cn, generateId } from "@/lib/utils";
 import { produce } from "immer";
 // TmuxGrid.tsx
+import { useUndoableState } from "@/hooks/use-undoable-state";
+import { useHotkey } from "@tanstack/react-hotkeys";
 import React, {
   HTMLAttributes,
   ReactNode,
@@ -9,7 +11,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { flattenTree } from "../lib";
+import { equalizeTree, flattenTree } from "../lib";
 import {
   AddDirection,
   FlatPane,
@@ -18,13 +20,21 @@ import {
   SplitDirection,
   TreeNode,
 } from "../types/tmux-grid";
-import { useUndoableState } from "@/hooks/use-undoable-state";
-import { useHotkey } from "@tanstack/react-hotkeys";
 
-const initialTree: TreeNode = {
+export const fallbackInitialTree: TreeNode = {
   type: "pane",
   id: "root",
   content: "",
+};
+export const cloneTree = (node: any): any => {
+  if (node.type === "pane") {
+    return { ...node }; // Copia rasa do painel (preserva JSX, Strings, URLs)
+  }
+  return {
+    ...node,
+    first: cloneTree(node.first),
+    second: cloneTree(node.second),
+  };
 };
 
 export interface TmuxGridProps extends Omit<
@@ -37,11 +47,13 @@ export interface TmuxGridProps extends Omit<
     list: FlatPane[];
     actions: GridItemActions;
   }) => ReactNode;
+  initialTree?: TreeNode;
 }
 
 export const TmuxGrid: React.FC<TmuxGridProps> = ({
   renderItem,
   className,
+  initialTree,
   ...props
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,7 +65,10 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     set: setTree,
     undo,
     redo,
-  } = useUndoableState<TreeNode>(initialTree, "tmux-grid");
+  } = useUndoableState<TreeNode>(
+    initialTree || fallbackInitialTree,
+    "tmux-grid",
+  );
 
   useHotkey("Mod+Z", undo);
   useHotkey("Mod+Shift+Z", redo);
@@ -72,24 +87,6 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     snapLines: number[]; // NOVO: Array de coordenadas magnéticas
     hasMoved: boolean;
   } | null>(null);
-
-  // Funções auxiliares (fora do componente ou antes do return)
-  const getWeight = (node: any, dir: "V" | "H"): number => {
-    if (node.type === "pane") return 1;
-    if (node.direction === dir) {
-      return getWeight(node.first, dir) + getWeight(node.second, dir);
-    }
-    return 1;
-  };
-
-  const equalizeTree = (node: any) => {
-    if (node.type === "pane") return;
-    equalizeTree(node.first);
-    equalizeTree(node.second);
-    const w1 = getWeight(node.first, node.direction);
-    const w2 = getWeight(node.second, node.direction);
-    node.ratio = w1 / (w1 + w2);
-  };
 
   // Dentro do componente TmuxGrid
   const handleResetHandles = () => {
@@ -220,7 +217,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
 
       // FUGA DO IMMER: Usamos um clone profundo para evitar conflitos de Proxy.
       // (Nota: Se o seu ambiente Vite reclamar do structuredClone, use JSON.parse(JSON.stringify(currentTree)))
-      const newTree = structuredClone(currentTree);
+      const newTree = cloneTree(currentTree);
 
       // FASE 1: Encontrar e fazer uma cópia do painel de origem
       let sourcePaneData: any = null;
@@ -298,7 +295,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
       // Regra de segurança: Não permitimos deletar se for o último painel
       if (currentTree.type === "pane") return currentTree;
 
-      const newTree = structuredClone(currentTree);
+      const newTree = cloneTree(currentTree);
 
       const removeNode = (node: any): any => {
         if (node.type === "pane") {

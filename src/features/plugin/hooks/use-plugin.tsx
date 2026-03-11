@@ -18,6 +18,7 @@ export interface PluginContextState {
   updatePluginEnabled: (id: string, enabled: boolean) => void;
   findPluginRawById: (id: string) => PluginRaw | undefined;
   findPluginByUrl: (url: string) => Plugin[];
+  findPluginByName: (name: string) => Plugin[];
   findComponentByUrl: (
     url: string,
     type: PLUGIN_TYPE_OPTIONS,
@@ -100,6 +101,16 @@ export function PluginProvider({ children }: PropsWithChildren) {
         .toSorted((a, b) => (a.isBuiltin !== b.isBuiltin ? 0 : 1))
         .find((it) => it.id === id),
     [pluginsRaw],
+  );
+
+  const handleFindPluginByName = useCallback<
+    PluginContextState["findPluginByName"]
+  >(
+    (name) =>
+      plugins.filter(
+        (it) => it.name.toLowerCase().trim() === name.toLowerCase().trim(),
+      ),
+    [plugins],
   );
 
   const handleSave = useCallback<PluginContextState["save"]>(
@@ -205,6 +216,7 @@ export function PluginProvider({ children }: PropsWithChildren) {
         findPluginRawById: handleFindPluginRawById,
         findComponentByUrl: handleFindComponentByUrl,
         findPluginByUrl: handleFindPluginByUrl,
+        findPluginByName: handleFindPluginByName,
       }}
     >
       {children}
