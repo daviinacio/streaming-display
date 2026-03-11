@@ -6,7 +6,10 @@ import React, {
   useMemo,
 } from "react";
 
-import { Preferences, usePreference } from "@/hooks/use-preference";
+import {
+  Preferences,
+  usePreference,
+} from "@/features/preferences/hooks/use-preference";
 import { applyTheme } from "@/lib/theme.ts";
 
 type Theme = Preferences["theme"];

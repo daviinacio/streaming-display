@@ -17,14 +17,20 @@ import {
   GridItemActions,
   SplitDirection,
   TreeNode,
-} from "../types";
+} from "../types/tmux-grid";
+import { useUndoableState } from "@/hooks/use-undoable-state";
+import { useHotkey } from "@tanstack/react-hotkeys";
+
+const initialTree: TreeNode = {
+  type: "pane",
+  id: "root",
+  content: "",
+};
 
 export interface TmuxGridProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   "children"
 > {
-  tree: TreeNode;
-  onTreeChange: React.Dispatch<React.SetStateAction<TreeNode>>;
   renderItem: (props: {
     content: string;
     empty: boolean;
@@ -34,8 +40,6 @@ export interface TmuxGridProps extends Omit<
 }
 
 export const TmuxGrid: React.FC<TmuxGridProps> = ({
-  tree,
-  onTreeChange,
   renderItem,
   className,
   ...props
@@ -43,6 +47,16 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [animate, setAnimate] = useState(true);
   const [maximizedPaneId, setMaximizedPaneId] = useState<string | null>(null);
+
+  const {
+    state: tree,
+    set: setTree,
+    undo,
+    redo,
+  } = useUndoableState<TreeNode>(initialTree, "tmux-grid");
+
+  useHotkey("Mod+Z", undo);
+  useHotkey("Mod+Shift+Z", redo);
 
   // Estado para gerenciar o arrasto do resizer
   const draggingRef = useRef<{
@@ -79,7 +93,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
 
   // Dentro do componente TmuxGrid
   const handleResetHandles = () => {
-    onTreeChange((currentTree) => {
+    setTree((currentTree) => {
       return produce(currentTree, (draft) => {
         equalizeTree(draft);
       });
@@ -92,7 +106,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     direction: AddDirection,
     content: string,
   ) => {
-    onTreeChange((currentTree) => {
+    setTree((currentTree) => {
       return produce(currentTree, (draft) => {
         // Função recursiva para encontrar o alvo e criar o Split
         const splitNode = (node: any): boolean => {
@@ -141,7 +155,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
   const handleSwapNodes = (id1: string, id2: string) => {
     if (id1 === id2) return;
 
-    onTreeChange((currentTree) => {
+    setTree((currentTree) => {
       return produce(currentTree, (draft) => {
         let parent1: any = null;
         let key1: "first" | "second" | null = null;
@@ -200,7 +214,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     // 1. Evita mover um painel para o lado dele mesmo
     if (sourceId === targetId) return;
 
-    onTreeChange((currentTree) => {
+    setTree((currentTree) => {
       // 2. Se a tela só tem 1 painel (o root), não há para onde mover
       if (currentTree.type === "pane") return currentTree;
 
@@ -280,7 +294,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
       setMaximizedPaneId(null);
     }
 
-    onTreeChange((currentTree) => {
+    setTree((currentTree) => {
       // Regra de segurança: Não permitimos deletar se for o último painel
       if (currentTree.type === "pane") return currentTree;
 
@@ -312,7 +326,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
 
   // --- LÓGICA DE ATUALIZAR CONTEÚDO DO TILE ---
   const handleUpdateTile = (targetId: string, newContent: string) => {
-    onTreeChange((currentTree) => {
+    setTree((currentTree) => {
       return produce(currentTree, (draft) => {
         // Função recursiva para encontrar o alvo e atualizar
         const updateNode = (node: any): boolean => {
@@ -399,7 +413,7 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
       // FORÇA DO ÍMÃ: Se o mouse chegar a 1.5% de distância de outra linha, ele gruda!
       const SNAP_THRESHOLD = 1.5;
 
-      onTreeChange(
+      setTree(
         produce((draft) => {
           const updateRatio = (node: any) => {
             if (node.type === "split") {
@@ -446,7 +460,6 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
           };
           updateRatio(draft);
         }),
-        // @ts-ignore
         { overwrite: draggingRef.current.hasMoved },
       );
       draggingRef.current.hasMoved = true;
@@ -531,6 +544,9 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
                 toggleMaximize() {
                   if (maximizedPaneId === pane.id) setMaximizedPaneId(null);
                   else setMaximizedPaneId(pane.id);
+                },
+                disableMaximize() {
+                  setMaximizedPaneId(null);
                 },
               },
             })}

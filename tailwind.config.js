@@ -8,12 +8,9 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   safelist: [
-    {
-      pattern: /./,
-    },
-    // {
-    //   pattern: /(bg|text|border)-(red|blue|green|gray)-(100|200|300|400|500|600|700|800|900)/,
-    // },
+    ...(process.env.NODE_ENV === 'production'
+      ? [{ pattern: /./ }]
+      : [])
   ],
   theme: {
     extend: {

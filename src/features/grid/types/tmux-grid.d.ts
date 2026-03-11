@@ -44,4 +44,5 @@ export interface GridItemActions {
   move: (direction: AddDirection, content: string) => void;
   remove: () => void;
   toggleMaximize: () => void;
+  disableMaximize: () => void;
 }

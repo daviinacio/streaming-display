@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { ExpandIcon, ShrinkIcon } from "lucide-react";
-import { usePreference } from "@/hooks/use-preference";
+import { usePreference } from "@/features/preferences/hooks/use-preference";
 import { ButtonProps } from "@/components/ui";
 import { HeaderButton } from "@/components/HeaderButton";
 

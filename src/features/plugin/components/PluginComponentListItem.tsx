@@ -21,7 +21,10 @@ import { PLUGIN_COMPONENT_DEFAULT_CODE } from "../constants/plugin-component-def
 import { PLUGIN_TYPE_OPTIONS } from "../constants/plugin-type.options";
 import { Switch } from "@/components/ui/switch";
 
-interface PluginComponentListItemProps extends HTMLAttributes<HTMLDivElement> {
+interface PluginComponentListItemProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "onRemove" | "onSelect"
+> {
   index: number;
   onRemove: () => void;
   onSelect: () => void;

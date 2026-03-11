@@ -34,6 +34,7 @@ export function PlayerHudAction({
               onDoubleClick && onDoubleClick(e);
             }}
             variant="ghost"
+            data-visibility="default"
             {...props}
           >
             <Slot

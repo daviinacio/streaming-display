@@ -8,6 +8,7 @@ import {
 import { PluginMount } from "@/features/plugin";
 import { cn, copyToClipboard } from "@/lib/utils";
 import {
+  ClipboardCopyIcon,
   PauseIcon,
   PlayIcon,
   SpeakerLoudIcon,
@@ -24,13 +25,14 @@ import {
 import { Children, cloneElement, HTMLAttributes, isValidElement } from "react";
 import { useStream } from "../hooks/use-stream";
 import { PlayerHudAction } from "./PlayerHudAction";
+import { FadeLoader } from "react-spinners";
 
 export interface PlayerHudProps extends HTMLAttributes<HTMLDivElement> {}
 
 export function PlayerHud({ children, className, ...props }: PlayerHudProps) {
-  const { src, handler, grid, player } = useStream();
+  const { src, handler, grid, error, player } = useStream();
 
-  const title = handler?.title || src;
+  const title = (handler ? handler.title : !error && "Loading...") || src;
 
   return (
     <div
@@ -40,15 +42,15 @@ export function PlayerHud({ children, className, ...props }: PlayerHudProps) {
       )}
       {...props}
     >
-      {/* <div
+      <div
         key="spinner"
         className={cn(
           "absolute inset-0 flex items-center justify-center",
-          // error && "hidden"
+          !player.buffering && "hidden",
         )}
       >
         <FadeLoader color="white" />
-      </div> */}
+      </div>
       <div className="h-full w-full flex justify-center items-center pointer-events-none">
         {Children.map(children, (child) => {
           // 1. Sempre verifique se o filho é um elemento React válido
@@ -71,123 +73,149 @@ export function PlayerHud({ children, className, ...props }: PlayerHudProps) {
         })}
       </div>
       <div
-        role="player-header"
         className={cn(
-          "absolute top-0 left-0 right-0",
-          "flex items-center justify-between",
-          "p-1 pl-3 transition-[opacity] duration-300",
-          "z-20 opacity-0 group-hover/player:opacity-100",
-          "bg-gradient-to-b from-black/80 pointer-events-none",
+          "[&_[data-visibility]]:transition-opacity [&_[data-visibility]]:duration-500",
+          // Default visibility
+          "[&_[data-visibility=default]]:opacity-0",
+          "group-hover/player:data-[visibility=default]:[&_[data-visibility=default]]:opacity-100",
+          // Always visible
+          "[&_[data-visibility=always]]:opacity-100",
         )}
       >
-        <div className="max-w-[70%] pointer-events-auto flex gap-2 !text-white">
-          {title && (
-            <div className="flex gap-1 max-w-full items-center">
-              <p
-                className={cn(
-                  "text-2xl font-semibold truncate",
-                  "drop-shadow-text",
-                )}
-                onClick={() => title && copyToClipboard(title, "Title")}
-              >
-                {title}
-              </p>
-              <a href={src} target="_blank" rel="noreferrer">
-                <PlayerHudAction size="sm">
-                  <ExternalLinkIcon />
-                </PlayerHudAction>
-              </a>
-              <PluginMount position="header_left" />
-            </div>
+        <div
+          role="player-header"
+          className={cn(
+            "absolute top-0 left-0 right-0",
+            "flex items-center justify-between",
+            "p-1 pl-3 transition-all duration-300",
+            "z-20 from-transparent to-transparent bg-gradient-to-b group-hover/player:from-black/80",
+            " pointer-events-none",
           )}
-        </div>
-        <div className="flex items-center">
-          <PluginMount position="header_right" />
-          <PlayerHudAction onClick={() => grid.remove()}>
-            <XIcon />
-          </PlayerHudAction>
-        </div>
-      </div>
-      <div
-        role="player-controls"
-        className={cn(
-          "absolute bottom-0 left-0 right-0 z-20",
-          "flex items-center justify-between",
-          "p-1 transition-[opacity] duration-300",
-          "opacity-0 group-hover/player:opacity-100",
-          "bg-gradient-to-t from-black/80 ",
-          // "!pointer-events-none",
-          // (error || !data) && "hidden"
-        )}
-      >
-        <ScrollArea
-          orientation="horizontal"
-          className="max-w-[50%]"
-          scrollBarClassName="hidden"
         >
-          <div className={cn("flex items-center")}>
-            <PlayerHudAction onClick={player.togglePlaying}>
-              {player.playing ? <PauseIcon /> : <PlayIcon />}
-            </PlayerHudAction>
-
-            <PluginMount position="controls_left" />
-
-            <HoverCard open={player.muted ? false : undefined}>
-              <HoverCardTrigger>
-                <PlayerHudAction
-                  className="relative top-0 z-[10]"
-                  onClick={player.toggleMuted}
+          <div className="max-w-[70%] pointer-events-auto flex gap-2 !text-white">
+            {title && (
+              <div className={cn("flex gap-1 max-w-full items-center")}>
+                <p
+                  className={cn(
+                    "text-2xl font-semibold truncate translate-y-[-2px]",
+                    "drop-shadow-text",
+                  )}
+                  onClick={() => title && copyToClipboard(title, "Title")}
+                  data-visibility="default"
                 >
-                  {player.muted ? (
-                    <SpeakerOffIcon />
-                  ) : typeof player.volume !== "undefined" ? (
-                    player.volume < 0.2 ? (
-                      <SpeakerQuietIcon />
-                    ) : player.volume >= 0.2 && player.volume < 0.8 ? (
-                      <SpeakerModerateIcon />
-                    ) : (
-                      <SpeakerLoudIcon />
-                    )
-                  ) : undefined}
-                </PlayerHudAction>
-              </HoverCardTrigger>
-              <HoverCardContent
-                className="w-40 p-4 z-[0] pl-12 rounded-full bg-background/50 flex items-end pointer-events-auto"
-                side="right"
-                align="start"
-                alignOffset={-2}
-                sideOffset={-46}
-                onDoubleClick={(e) => e.stopPropagation()}
-                onDragStart={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-              >
-                <Slider
-                  defaultValue={[0.8]}
-                  max={1}
-                  step={0.05}
-                  value={[player.volume || 0]}
-                  orientation="horizontal"
-                  onValueChange={(value) => player.setVolume(value[0])}
+                  {title}
+                </p>
+                <a
+                  href={src}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-visibility="default"
+                >
+                  <PlayerHudAction size="sm">
+                    <ExternalLinkIcon />
+                  </PlayerHudAction>
+                </a>
+                <PluginMount position="header_left" />
+              </div>
+            )}
+          </div>
+          <div className="flex items-center">
+            <PluginMount position="header_right" />
+            <PlayerHudAction onClick={() => grid.remove()}>
+              <XIcon />
+            </PlayerHudAction>
+          </div>
+        </div>
+        <div
+          role="player-controls"
+          className={cn(
+            "absolute bottom-0 left-0 right-0 z-20",
+            "flex items-center justify-between",
+            "p-1 transition-all duration-300",
+            "z-20 from-transparent to-transparent bg-gradient-to-t group-hover/player:from-black/80 duration-300",
+            // "!pointer-events-none",
+            // (error || !data) && "hidden"
+          )}
+        >
+          <ScrollArea
+            orientation="horizontal"
+            className="max-w-[50%]"
+            scrollBarClassName="hidden"
+          >
+            <div className={cn("flex items-center")}>
+              <PlayerHudAction onClick={player.togglePlaying}>
+                {player.playing ? <PauseIcon /> : <PlayIcon />}
+              </PlayerHudAction>
+
+              <PluginMount position="controls_left" />
+
+              <HoverCard open={player.muted ? false : undefined}>
+                <HoverCardTrigger>
+                  <PlayerHudAction
+                    className="relative top-0 z-[10]"
+                    onClick={player.toggleMuted}
+                  >
+                    {player.muted ? (
+                      <SpeakerOffIcon />
+                    ) : typeof player.volume !== "undefined" ? (
+                      player.volume < 0.2 ? (
+                        <SpeakerQuietIcon />
+                      ) : player.volume >= 0.2 && player.volume < 0.8 ? (
+                        <SpeakerModerateIcon />
+                      ) : (
+                        <SpeakerLoudIcon />
+                      )
+                    ) : undefined}
+                  </PlayerHudAction>
+                </HoverCardTrigger>
+                <HoverCardContent
+                  className="w-40 p-4 z-[0] pl-12 rounded-full bg-background/50 flex items-end pointer-events-auto"
+                  side="right"
+                  align="start"
+                  alignOffset={-2}
+                  sideOffset={-46}
+                  onDoubleClick={(e) => e.stopPropagation()}
                   onDragStart={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                   }}
-                />
-              </HoverCardContent>
-            </HoverCard>
-          </div>
-        </ScrollArea>
-        <ScrollArea
-          orientation="horizontal"
-          scrollBarClassName="hidden"
-          className="max-w-[50%]"
-        >
-          <div className="flex items-center justify-end">
-            <PluginMount position="controls_right" />
+                >
+                  <Slider
+                    defaultValue={[0.8]}
+                    max={1}
+                    step={0.05}
+                    value={[player.volume || 0]}
+                    orientation="horizontal"
+                    onValueChange={(value) => player.setVolume(value[0])}
+                    onDragStart={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  />
+                </HoverCardContent>
+              </HoverCard>
+            </div>
+          </ScrollArea>
+          <ScrollArea
+            orientation="horizontal"
+            scrollBarClassName="hidden"
+            className="max-w-[50%]"
+          >
+            <div className="flex items-center justify-end">
+              <PluginMount position="controls_right" />
 
-            {/* <PlayerHudAction
+              {handler?.sourceUrl && (
+                <PlayerHudAction
+                  title="Copy source url"
+                  onClick={() =>
+                    copyToClipboard(handler?.sourceUrl, "Source URL")
+                  }
+                >
+                  <ClipboardCopyIcon />
+                </PlayerHudAction>
+              )}
+
+              {/* <PlayerHudAction
                 title="Refresh link"
                 className={cn(isFetching && "animate-spin")}
                 onClick={() => handleRefresh("force", null)}
@@ -196,18 +224,19 @@ export function PlayerHud({ children, className, ...props }: PlayerHudProps) {
                 <ReloadIcon />
               </PlayerHudAction> */}
 
-            <PlayerHudAction
-              title="Picture-in-picture"
-              onClick={player.togglePip}
-            >
-              {player.pip ? (
-                <PictureInPicture2Icon />
-              ) : (
-                <PictureInPictureIcon />
-              )}
-            </PlayerHudAction>
-          </div>
-        </ScrollArea>
+              <PlayerHudAction
+                title="Picture-in-picture"
+                onClick={player.togglePip}
+              >
+                {player.pip ? (
+                  <PictureInPicture2Icon />
+                ) : (
+                  <PictureInPictureIcon />
+                )}
+              </PlayerHudAction>
+            </div>
+          </ScrollArea>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { TextareaProps } from "@/components/ui";
-import { usePreference } from "@/hooks/use-preference";
+import { usePreference } from "@/features/preferences/hooks/use-preference";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
 import Editor, { OnMount, useMonaco } from "@monaco-editor/react";

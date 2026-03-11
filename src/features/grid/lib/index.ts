@@ -1,4 +1,4 @@
-import { FlatPane, FlatResizer, TreeNode } from "../types";
+import { FlatPane, FlatResizer, TreeNode } from "../types/tmux-grid";
 
 export function flattenTree(
   node: TreeNode,

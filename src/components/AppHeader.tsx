@@ -1,13 +1,13 @@
 import { Logo } from "@/assets/logo";
 import { PluginListDialog } from "@/features/plugin/components/PluginListDialog";
-import { ToggleFitVideoButton } from "@/features/settings/components/HeadetFitButton";
+import { ToggleFitVideoButton } from "@/features/preferences/components/HeadetFitButton";
 import { cn } from "@/lib/utils";
 import { ExternalLinkIcon, PaletteIcon, Plug2Icon } from "lucide-react";
 import { HTMLAttributes } from "react";
 import { HeaderButton } from "./HeaderButton";
-import { ThemeButton } from "@/features/settings/components/HeaderThemeButton";
-import { ThemeDialog } from "@/features/settings/components/ThemeDialog";
-import { FullscreenButton } from "@/features/settings/components/HeaderFullscreenButton";
+import { ThemeButton } from "@/features/preferences/components/HeaderThemeButton";
+import { ThemeDialog } from "@/features/preferences/components/ThemeDialog";
+import { FullscreenButton } from "@/features/preferences/components/HeaderFullscreenButton";
 import { Button, ButtonProps } from "./ui";
 
 export type AppHeaderProps = HTMLAttributes<HTMLHeadElement>;

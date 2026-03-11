@@ -13,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui";
-import { usePreference } from "@/hooks/use-preference";
+import { usePreference } from "@/features/preferences/hooks/use-preference";
 import { cn } from "@/lib/utils";
 import { DialogProps } from "@radix-ui/react-dialog";
 import { CheckIcon } from "@radix-ui/react-icons";

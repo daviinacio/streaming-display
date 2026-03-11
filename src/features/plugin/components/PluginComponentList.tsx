@@ -46,9 +46,9 @@ export function PluginComponentList({
       </div>
 
       <div className="flex-1 flex flex-col">
-        {fields.map((_, i) => (
+        {fields.map((field, i) => (
           <PluginComponentListItem
-            key={i}
+            key={field.id}
             index={i}
             className={cn(i === selected ? "font-semibold" : "tracking-wide")}
             onRemove={() => remove(i)}
