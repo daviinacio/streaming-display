@@ -138,3 +138,14 @@ img {
   pointer-events: all !important;
   will-change: transform;
 }
+
+
+hls-video {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  overflow-clip-margin: content-box;
+  overflow: clip;
+  display: block;
+  vertical-align: middle;
+}

@@ -5,7 +5,7 @@ export default {
       enabled: true,
       name: "Player",
       type: "player",
-      code: 'export default function TwitchPlayer({ src, player, ...props }) {\n  const [hasStarted, setHasStarted] = React.useState(false);\n  const [playing, setPlaying] = React.useState(false);\n\n  React.useEffect(() => {\n    if (!player.playing) return setPlaying(false);\n    setHasStarted(false);\n  }, [player.playing]);\n\n  React.useEffect(() => {\n    if (hasStarted) return;\n    setPlaying(false);\n    const timeout = setTimeout(() => setPlaying(true), 1000);\n    return () => clearTimeout(timeout);\n  }, [hasStarted]);\n  \n  return (\n    <ReactPlayer\n      {...props}\n      {...player}\n      src={src}\n      playing={playing}\n      onPlaying={() => setHasStarted(true)}\n      style={{ zIndex: hasStarted ? 1 : 9999999, pointerEvents: hasStarted ? "none" : "auto" }}\n    />\n  )\n}\n ',
+      code: 'export default function TwitchPlayer({ src, player, ...props }) {\n  const [hasStarted, setHasStarted] = React.useState(false);\n  const [playing, setPlaying] = React.useState(false);\n\n  React.useEffect(() => {\n    if (!player.playing) return setPlaying(false);\n    setHasStarted(false);\n  }, [player.playing]);\n\n  React.useEffect(() => {\n    if (hasStarted) return;\n    setPlaying(false);\n    const timeout = setTimeout(() => setPlaying(true), 1000);\n    return () => clearTimeout(timeout);\n  }, [hasStarted]);\n  \n  return (\n    <Player\n      {...props}\n      {...player}\n      src={src}\n      playing={playing}\n      onPlaying={() => setHasStarted(true)}\n      style={{ zIndex: hasStarted ? 1 : 9999999, pointerEvents: hasStarted ? "none" : "auto" }}\n    />\n  )\n}\n ',
       isEdit: false,
       isDirty: true,
     },

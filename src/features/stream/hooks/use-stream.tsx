@@ -1,6 +1,6 @@
 import { GridItemActions } from "@/features/grid/types/tmux-grid";
 import { usePreference } from "@/features/preferences/hooks/use-preference";
-import useUpdateEffect from "@/hooks/use-update-effect";
+import { useUpdateEffect } from "@daviapps/react-utils/hooks/use-update-effect";
 import { useLocalState } from "@daviapps/react-utils/hooks";
 import {
   createContext,
@@ -74,7 +74,7 @@ export function StreamProvider({
   const [preferenceFitVideo] = usePreference("fit-video");
 
   useUpdateEffect(() => {
-    setPlayerState((p) => ({ ...p, playing: preferenceFitVideo }));
+    setPlayerState((p) => ({ ...p, fit: preferenceFitVideo }));
   }, [preferenceFitVideo]);
 
   useEffect(() => {
@@ -83,20 +83,9 @@ export function StreamProvider({
     return () => clearTimeout(timeout);
   }, [refresh]);
 
-  // useEffect(() => {
-  //   const timeout = setTimeout(() => {
-  //     setHasStarted(true);
-  //   }, 1000);
-
-  //   return () => {
-  //     clearTimeout(timeout);
-  //   };
-  // }, [playerState.playing]);
-
   const player: StreamContextState["player"] = {
     ...playerState,
     ...playerTempState,
-    // playing: hasStarted ? playerState.playing : false,
     onPlay: () => setPlayerState((p) => ({ ...p, playing: true })),
     onPause: () => setPlayerState((p) => ({ ...p, playing: false })),
     onEnterPictureInPicture: () => setPlayerState((p) => ({ ...p, pip: true })),
@@ -119,9 +108,9 @@ export function StreamProvider({
 
     onEnded: () => {
       console.error(`Error on ${props.src}`);
-      refresh();
+      handleRefresh();
     },
-    onError: () => refresh(),
+    onError: () => handleRefresh(),
 
     // onWaiting: () => {
     //   setPlayerTempState((p) => ({ ...p, buffering: true }));

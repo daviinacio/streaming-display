@@ -227,7 +227,7 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
             className={cn(
               "h-full rounded-xl",
               "border-2 border-dashed border-transparent",
-              "[.drag-over_&]:text-primary",
+              // "[.drag-over_&]:text-primary",
               "[.drag-over_&]:border-primary ",
               "[.drag-pos-center_&]:p-1.5",
               "[.drag-pos-top_&]:pt-1.5",

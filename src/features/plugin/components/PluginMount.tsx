@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { usePlugin } from "..";
 import { PLUGIN_TYPE_OPTIONS } from "../constants/plugin-type.options";
 import { PluginMountBoundary } from "./PluginMountBoundary";
+import { Slot } from "@radix-ui/react-slot";
 
 export interface PluginMountProps {
   position: PLUGIN_TYPE_OPTIONS;
@@ -23,7 +24,8 @@ export function PluginMount({
   const { findComponentByUrl } = usePlugin();
   const components = findComponentByUrl(context.src, position);
 
-  if (components.length === 0 && fallback) return fallback;
+  if (components.length === 0 && fallback)
+    return <Slot {...props}>{fallback}</Slot>;
 
   return (
     <ErrorBoundary fallback={<PluginMountBoundary />}>
