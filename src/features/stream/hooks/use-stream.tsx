@@ -86,8 +86,11 @@ export function StreamProvider({
   const player: StreamContextState["player"] = {
     ...playerState,
     ...playerTempState,
-    onPlay: () => setPlayerState((p) => ({ ...p, playing: true })),
-    onPause: () => setPlayerState((p) => ({ ...p, playing: false })),
+    onPlay: () => setPlayerTempState((p) => ({ ...p, playing: true })),
+    onPause: () => {
+      // alert("has paused");
+      // setPlayerTempState((p) => ({ ...p, playing: false }));
+    },
     onEnterPictureInPicture: () => setPlayerState((p) => ({ ...p, pip: true })),
     onLeavePictureInPicture: () =>
       setPlayerState((p) => ({ ...p, pip: false })),
