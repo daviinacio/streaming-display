@@ -11,15 +11,18 @@ import {
   ClipboardCopyIcon,
   PauseIcon,
   PlayIcon,
+  ReloadIcon,
   SpeakerLoudIcon,
   SpeakerModerateIcon,
   SpeakerOffIcon,
   SpeakerQuietIcon,
 } from "@radix-ui/react-icons";
 import {
+  ExpandIcon,
   ExternalLinkIcon,
   PictureInPicture2Icon,
   PictureInPictureIcon,
+  ShrinkIcon,
   XIcon,
 } from "lucide-react";
 import { Children, cloneElement, HTMLAttributes, isValidElement } from "react";
@@ -30,7 +33,7 @@ import { FadeLoader } from "react-spinners";
 export interface PlayerHudProps extends HTMLAttributes<HTMLDivElement> {}
 
 export function PlayerHud({ children, className, ...props }: PlayerHudProps) {
-  const { src, handler, grid, error, player } = useStream();
+  const { src, handler, grid, error, player, refresh } = useStream();
 
   const title = (handler ? handler.title : !error && "Loading...") || src;
 
@@ -215,14 +218,17 @@ export function PlayerHud({ children, className, ...props }: PlayerHudProps) {
                 </PlayerHudAction>
               )}
 
-              {/* <PlayerHudAction
+              <PlayerHudAction
                 title="Refresh link"
-                className={cn(isFetching && "animate-spin")}
-                onClick={() => handleRefresh("force", null)}
-                disabled={refreshCoolDown || isFetching}
+                className={cn(
+                  !refresh && "animate-spin",
+                  !refresh && "text-neutral-500",
+                )}
+                onClick={() => refresh && refresh()}
+                disabled={!refresh}
               >
                 <ReloadIcon />
-              </PlayerHudAction> */}
+              </PlayerHudAction>
 
               <PlayerHudAction
                 title="Picture-in-picture"
@@ -233,6 +239,10 @@ export function PlayerHud({ children, className, ...props }: PlayerHudProps) {
                 ) : (
                   <PictureInPictureIcon />
                 )}
+              </PlayerHudAction>
+
+              <PlayerHudAction onClick={player.toggleFit}>
+                {player.fit ? <ShrinkIcon /> : <ExpandIcon />}
               </PlayerHudAction>
             </div>
           </ScrollArea>

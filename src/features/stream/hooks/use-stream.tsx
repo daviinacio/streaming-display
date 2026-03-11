@@ -1,8 +1,11 @@
 import { GridItemActions } from "@/features/grid/types/tmux-grid";
+import { usePreference } from "@/features/preferences/hooks/use-preference";
+import useUpdateEffect from "@/hooks/use-update-effect";
 import { useLocalState } from "@daviapps/react-utils/hooks";
 import {
   createContext,
   PropsWithChildren,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -29,19 +32,28 @@ export interface StreamContextState {
     togglePip: () => void;
 
     buffering: boolean;
+
+    fit: boolean;
+    toggleFit: () => void;
   };
+  refresh?: () => void;
 }
 
 export const StreamContext = createContext<StreamContextState | null>(null);
 
 export interface StreamProviderProps extends PropsWithChildren {
   src: string;
-  handler?: any;
+  handler: any;
   error?: any;
   grid: GridItemActions;
+  refresh: () => Promise<void>;
 }
 
-export function StreamProvider({ children, ...props }: StreamProviderProps) {
+export function StreamProvider({
+  children,
+  refresh,
+  ...props
+}: StreamProviderProps) {
   const [playerState, setPlayerState] = useLocalState({
     key: `player-state-${props.src}`,
     initialState: {
@@ -49,6 +61,7 @@ export function StreamProvider({ children, ...props }: StreamProviderProps) {
       muted: true,
       volume: 0.5,
       pip: false,
+      fit: false,
     },
   });
 
@@ -57,23 +70,33 @@ export function StreamProvider({ children, ...props }: StreamProviderProps) {
   });
 
   const [lastPos, setLastPos] = useState(0);
+  const [refreshCoolDown, setRefreshCoolDown] = useState(false);
+  const [preferenceFitVideo] = usePreference("fit-video");
 
-  const [hasStarted, setHasStarted] = useState(false);
+  useUpdateEffect(() => {
+    setPlayerState((p) => ({ ...p, playing: preferenceFitVideo }));
+  }, [preferenceFitVideo]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setHasStarted(true);
-    }, 1000);
+    setRefreshCoolDown(true);
+    const timeout = setTimeout(() => setRefreshCoolDown(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [refresh]);
 
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [playerState.playing]);
+  // useEffect(() => {
+  //   const timeout = setTimeout(() => {
+  //     setHasStarted(true);
+  //   }, 1000);
+
+  //   return () => {
+  //     clearTimeout(timeout);
+  //   };
+  // }, [playerState.playing]);
 
   const player: StreamContextState["player"] = {
     ...playerState,
     ...playerTempState,
-    playing: hasStarted ? playerState.playing : false,
+    // playing: hasStarted ? playerState.playing : false,
     onPlay: () => setPlayerState((p) => ({ ...p, playing: true })),
     onPause: () => setPlayerState((p) => ({ ...p, playing: false })),
     onEnterPictureInPicture: () => setPlayerState((p) => ({ ...p, pip: true })),
@@ -81,7 +104,7 @@ export function StreamProvider({ children, ...props }: StreamProviderProps) {
       setPlayerState((p) => ({ ...p, pip: false })),
 
     onProgress: (state) => {
-      console.log("onProgress", state);
+      // console.log("onProgress", state);
       if (
         playerState.playing &&
         state.timeStamp === lastPos &&
@@ -93,6 +116,12 @@ export function StreamProvider({ children, ...props }: StreamProviderProps) {
       }
       setLastPos(state.timeStamp);
     },
+
+    onEnded: () => {
+      console.error(`Error on ${props.src}`);
+      refresh();
+    },
+    onError: () => refresh(),
 
     // onWaiting: () => {
     //   setPlayerTempState((p) => ({ ...p, buffering: true }));
@@ -122,12 +151,22 @@ export function StreamProvider({ children, ...props }: StreamProviderProps) {
     togglePip() {
       setPlayerState((p) => ({ ...p, pip: !p.pip }));
     },
+    toggleFit() {
+      setPlayerState((p) => ({ ...p, fit: !p.fit }));
+    },
   };
+
+  const handleRefresh = useCallback(() => {
+    refresh().then(() => {
+      player.play();
+    });
+  }, [refresh]);
 
   return (
     <StreamContext.Provider
       value={{
         player,
+        refresh: refreshCoolDown ? undefined : handleRefresh,
         ...props,
       }}
     >

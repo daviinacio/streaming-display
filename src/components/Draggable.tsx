@@ -10,14 +10,14 @@ import {
 
 export type DraggableProps = {
   disabled?: boolean;
-  type: string;
+  type?: string;
   value: string;
   ghost?: ReactElement;
 } & HTMLAttributes<HTMLDivElement>;
 
 export function Draggable({
   children,
-  type,
+  type = "url",
   value,
   disabled,
   ghost,
@@ -39,7 +39,7 @@ export function Draggable({
         e.dataTransfer.setDragImage(
           ghostRef.current,
           20,
-          ghostRef.current.offsetHeight / 2
+          ghostRef.current.offsetHeight / 2,
         );
       }
     }

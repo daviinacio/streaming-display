@@ -4,7 +4,7 @@ import { usePlugin } from "@/features/plugin";
 import { PluginMount } from "@/features/plugin/components/PluginMount";
 import { cn, mergeDefined } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { HtmlHTMLAttributes } from "react";
+import { HtmlHTMLAttributes, useCallback, useEffect, useState } from "react";
 import { StreamProvider } from "../hooks/use-stream";
 import { Player } from "./Player";
 import { PlayerHud } from "./PlayerHud";
@@ -25,7 +25,9 @@ export function Stream({ url, className, grid, ...props }: StreamProps) {
   const { findComponentByUrl } = usePlugin();
   const pluginsSourceHandlers = findComponentByUrl(url, "source_handler");
 
-  const { data, error } = useQuery({
+  const [showPlayer, setShowPlayer] = useState(true);
+
+  const { data, error, refetch, isFetching } = useQuery({
     queryKey: ["handler", url, `${pluginsSourceHandlers.length}_handlers`],
     queryFn: () =>
       Promise.all(
@@ -49,10 +51,23 @@ export function Stream({ url, className, grid, ...props }: StreamProps) {
     staleTime: 5 * 60 * 1000,
   });
 
+  const handleRefresh = useCallback(async () => {
+    await refetch().then(() => {
+      setShowPlayer(false);
+    });
+  }, [data, error, isFetching]);
+
+  useEffect(() => setShowPlayer(true), [showPlayer]);
+
   return (
-    <StreamProvider src={url} handler={data} grid={grid} error={error}>
+    <StreamProvider
+      src={url}
+      handler={data}
+      grid={grid}
+      error={error}
+      refresh={handleRefresh}
+    >
       <Draggable
-        type="pane"
         value={url}
         className="h-full w-full"
         ghost={<StreamDragGhost />}
@@ -91,11 +106,13 @@ export function Stream({ url, className, grid, ...props }: StreamProps) {
             </div>
           )}
 
-          <PluginMount
-            position="player"
-            key={url}
-            fallback={<Player src={(data || {}).sourceUrl} />}
-          />
+          {showPlayer && (
+            <PluginMount
+              position="player"
+              key={url}
+              fallback={<Player src={(data || {}).sourceUrl} />}
+            />
+          )}
         </PlayerHud>
       </Draggable>
     </StreamProvider>
