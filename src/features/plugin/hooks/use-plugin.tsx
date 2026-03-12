@@ -196,7 +196,9 @@ export function PluginProvider({ children }: PropsWithChildren) {
       builtinPluginRaws.forEach((it) => (it.isBuiltin = true));
       customPluginRaws.forEach((it) => (it.isBuiltin = false));
 
-      const pluginRaws = [...builtinPluginRaws, ...customPluginRaws];
+      const pluginRaws = [...customPluginRaws, ...builtinPluginRaws].filter(
+        distinct("id"),
+      );
 
       setPluginsRaw(pluginRaws);
 
