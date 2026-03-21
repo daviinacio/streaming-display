@@ -13,7 +13,7 @@ export function applyTheme(props?: ApplyThemeProps) {
 
   // Theme colors
   colorPrimaryHsl =
-    colorPrimaryHsl ?? preferences["color-primary"] ?? "142 72% 42%";
+    colorPrimaryHsl ?? preferences["preference-color-primary"] ?? "142 72% 42%";
   const colorPrimary = Color(`hsl(${colorPrimaryHsl})`);
   root.style.setProperty("--primary", colorPrimaryHsl || "");
   const colorPrimaryDark = colorPrimary.darken(0.1).hsl().string();

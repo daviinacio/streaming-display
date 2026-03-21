@@ -20,9 +20,9 @@ export default {
   ],
   enabled: true,
   match: [
+    "https://www.youtube.com/watch?v=*",
     "https://www.youtube.com/live/*",
     "https://youtube.com/live/*",
-    "https://www.youtube.com/watch?v=*",
   ],
   name: "Youtube",
   isBuiltin: false,

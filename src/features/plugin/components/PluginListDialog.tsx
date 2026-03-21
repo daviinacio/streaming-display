@@ -119,7 +119,7 @@ export function PluginListDialog({ children }: PluginListDialogProps) {
           </DialogHeader>
           <div className="h-full">
             <div>
-              <h3 className="text-sm font-semibold"> Built-in handlers</h3>
+              <h3 className="text-sm font-semibold"> Built-in plugins</h3>
               <PluginList
                 list={list.filter((it) => it.isBuiltin)}
                 onView={handleView}

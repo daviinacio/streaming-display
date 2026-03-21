@@ -1,6 +1,6 @@
 import { Logo } from "@/assets/logo";
 import { PluginListDialog } from "@/features/plugin/components/PluginListDialog";
-import { ToggleFitVideoButton } from "@/features/preferences/components/HeadetFitButton";
+import { ToggleFitVideoButton } from "@/features/preferences/components/HeaderFitButton";
 import { cn } from "@/lib/utils";
 import { ExternalLinkIcon, PaletteIcon, Plug2Icon } from "lucide-react";
 import { HTMLAttributes } from "react";
