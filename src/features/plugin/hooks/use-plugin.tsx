@@ -23,6 +23,9 @@ export interface PluginContextState {
     url: string,
     type: PLUGIN_TYPE_OPTIONS,
   ) => PluginComponent["component"][];
+  findComponentByPosition: (
+    type: PLUGIN_TYPE_OPTIONS,
+  ) => PluginComponent["component"][];
 }
 const PluginContext = createContext<PluginContextState | null>(null);
 
@@ -81,6 +84,22 @@ export function PluginProvider({ children }: PropsWithChildren) {
   >(
     (url, type) => {
       return handleFindPluginByUrl(url).reduce(
+        (acc, plugin) => {
+          const components = plugin.components
+            .filter((it) => it.type === type && it.enabled)
+            .map((it) => it.component);
+          return [...acc, ...components];
+        },
+        [] as PluginComponent["component"][],
+      );
+    },
+    [plugins],
+  );
+  const handleFindComponentByPosition = useCallback<
+    PluginContextState["findComponentByPosition"]
+  >(
+    (type) => {
+      return plugins.reduce(
         (acc, plugin) => {
           const components = plugin.components
             .filter((it) => it.type === type && it.enabled)
@@ -217,6 +236,7 @@ export function PluginProvider({ children }: PropsWithChildren) {
         updatePluginEnabled: handleUpdatePluginEnabled,
         findPluginRawById: handleFindPluginRawById,
         findComponentByUrl: handleFindComponentByUrl,
+        findComponentByPosition: handleFindComponentByPosition,
         findPluginByUrl: handleFindPluginByUrl,
         findPluginByName: handleFindPluginByName,
       }}

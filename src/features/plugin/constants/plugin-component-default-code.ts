@@ -15,4 +15,6 @@ export const PLUGIN_COMPONENT_DEFAULT_CODE: {
     'const { CircleQuestionMark } = Lucide;\nexport default function ({ src, ...props }) {\n  \n  function handleClick() {\n    console.log("click");\n  }\n  return (\n    <PlayerHudAction\n      onClick={handleClick}\n      {...props}\n    >\n      <CircleQuestionMark />\n    </PlayerHudAction>\n  )\n}',
   controls_right:
     'const { CircleQuestionMark } = Lucide;\nexport default function ({ src, ...props }) {\n  \n  function handleClick() {\n    console.log("click");\n  }\n  return (\n    <PlayerHudAction\n      onClick={handleClick}\n      {...props}\n    >\n      <CircleQuestionMark />\n    </PlayerHudAction>\n  )\n}',
+  menu_item:
+    'const { CircleQuestionMark } = Lucide;\n\nexport default function () {\n  return (\n    <HeaderButton onClick={() => console.log("click")}>\n      <CircleQuestionMark />\n    </HeaderButton>\n  )\n}',
 } as const;

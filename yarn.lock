@@ -170,10 +170,10 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.28.5"
 
-"@daviapps/react-utils@^0.0.16":
-  version "0.0.16"
-  resolved "https://registry.yarnpkg.com/@daviapps/react-utils/-/react-utils-0.0.16.tgz#3a5f3b269e1d60a442ed643db463706cac53b7d1"
-  integrity sha512-IzIuBVp1eXjw9qpAC6FK8YkQNkk3O62Cn86PT+yz5xsY2jR3WSFGfmq96vdHGyyqPSDZ8a3zgUp7og8mNrKzVw==
+"@daviapps/react-utils@^0.0.20":
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/@daviapps/react-utils/-/react-utils-0.0.20.tgz#c56d11a933417021c6f826a940070e06c61fc75d"
+  integrity sha512-R/wOXJ50K2aNJ0EcX+64kuFDXlHYFkSODH16Euf471G7FtMfhKB1qx5lIlzCssM6e7/2MCg+XTqBmGzPlD3Z5Q==
 
 "@esbuild/aix-ppc64@0.21.5":
   version "0.21.5"
@@ -905,7 +905,7 @@
     "@radix-ui/react-use-effect-event" "0.0.2"
     "@radix-ui/react-use-is-hydrated" "0.1.0"
 
-"@radix-ui/react-popover@1.1.15":
+"@radix-ui/react-popover@1.1.15", "@radix-ui/react-popover@^1.1.15":
   version "1.1.15"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-popover/-/react-popover-1.1.15.tgz#9c852f93990a687ebdc949b2c3de1f37cdc4c5d5"
   integrity sha512-kr0X2+6Yy/vJzLYJUPCZEc8SfQcf+1COFoAqauJm74umQhta9M7lNJHP7QQS3vkvcGLQUbWpMzwrXYwrYztHKA==

@@ -29,7 +29,7 @@ export default {
       enabled: true,
       name: "Chat Frame",
       type: "player",
-      code: 'export default function ({ src, handler, extra, ...props }) {\n  const channel = (new URL(src)).pathname.split(\'/\')[1];\n  return (\n    <iframe\n      width="300px"\n      style={{ zIndex: 15, top: 42, right: 0, height: "calc(100% - 90px)" }}\n      className={cn(\n        "absolute  pointer-events-auto rounded-lg",\n        !extra.chatOpen && "hidden"\n      )}\n      src={`https://www.twitch.tv/embed/${channel}/chat?parent=${location.hostname}`}\n    />\n  )\n}',
+      code: 'export default function ({ src, handler, extra, ...props }) {\n  const channel = (new URL(src)).pathname.split(\'/\')[1];\n  return (\n    <iframe\n      width="300px"\n      style={{ zIndex: 15, top: 42, right: 15, height: "calc(100% - 90px)" }}\n      className={cn(\n        "absolute  pointer-events-auto rounded-lg",\n        !extra.chatOpen && "hidden"\n      )}\n      src={`https://www.twitch.tv/embed/${channel}/chat?parent=${location.hostname}`}\n    />\n  )\n}',
       isEdit: false,
       isDirty: true,
     },

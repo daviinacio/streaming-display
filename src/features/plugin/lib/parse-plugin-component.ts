@@ -1,7 +1,9 @@
+import { HeaderButton } from "@/components/HeaderButton";
 import { Player, PlayerHudAction } from "@/features/stream";
 import { TsxParser } from "@/lib/tsx-parser";
 import { cn } from "@/lib/utils";
 import * as Lucide from "lucide-react";
+import * as ui from "@/components/ui";
 
 import ReactPlayer from "react-player";
 
@@ -16,6 +18,8 @@ export async function parsePluginComponent(code: string) {
       { name: "cn", content: cn },
       { name: "Lucide", content: Lucide },
       { name: "PlayerHudAction", content: PlayerHudAction },
+      { name: "HeaderButton", content: HeaderButton },
+      { name: "ui", content: ui },
     ],
   });
   return await parse(code);

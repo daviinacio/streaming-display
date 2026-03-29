@@ -5,6 +5,7 @@ import {
   ArrowUpRightIcon,
   DatabaseZapIcon,
   MonitorPlayIcon,
+  PanelTopIcon,
 } from "lucide-react";
 
 export const PLUGIN_TYPE_OPTIONS = {
@@ -16,6 +17,10 @@ export const PLUGIN_TYPE_OPTIONS = {
   controls_right: {
     label: "Controls Right",
     icon: ArrowDownRightIcon,
+  },
+  menu_item: {
+    label: "Menu Item",
+    icon: PanelTopIcon,
   },
 } as const;
 

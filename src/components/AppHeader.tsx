@@ -1,13 +1,14 @@
 import { Logo } from "@/assets/logo";
 import { PluginListDialog } from "@/features/plugin/components/PluginListDialog";
+import { PluginMountGlobal } from "@/features/plugin/components/PluginMountGlobal";
 import { ToggleFitVideoButton } from "@/features/preferences/components/HeaderFitButton";
+import { FullscreenButton } from "@/features/preferences/components/HeaderFullscreenButton";
+import { ThemeButton } from "@/features/preferences/components/HeaderThemeButton";
+import { ThemeDialog } from "@/features/preferences/components/ThemeDialog";
 import { cn } from "@/lib/utils";
 import { ExternalLinkIcon, PaletteIcon, Plug2Icon } from "lucide-react";
 import { HTMLAttributes } from "react";
 import { HeaderButton } from "./HeaderButton";
-import { ThemeButton } from "@/features/preferences/components/HeaderThemeButton";
-import { ThemeDialog } from "@/features/preferences/components/ThemeDialog";
-import { FullscreenButton } from "@/features/preferences/components/HeaderFullscreenButton";
 import { Button, ButtonProps } from "./ui";
 
 export type AppHeaderProps = HTMLAttributes<HTMLHeadElement>;
@@ -42,6 +43,8 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
           </div>
         </div>
         <div className="flex items-center sm:gap-1">
+          <PluginMountGlobal position="menu_item" />
+
           <ToggleFitVideoButton title="Fit video" />
 
           {/* <SourceHandlerListDialog>
