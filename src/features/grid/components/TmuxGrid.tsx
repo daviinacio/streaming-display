@@ -4,9 +4,11 @@ import { produce } from "immer";
 import { useUndoableState } from "@/hooks/use-undoable-state";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import React, {
+  forwardRef,
   HTMLAttributes,
   ReactNode,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -50,12 +52,17 @@ export interface TmuxGridProps extends Omit<
   initialTree?: TreeNode;
 }
 
-export const TmuxGrid: React.FC<TmuxGridProps> = ({
+export interface TmuxGridHandle {
+  removeByContent: (content: string) => void;
+  replaceByContent: (oldContent: string, newContent: string) => void;
+}
+
+export const TmuxGrid = forwardRef<TmuxGridHandle, TmuxGridProps>(({
   renderItem,
   className,
   initialTree,
   ...props
-}) => {
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [animate, setAnimate] = useState(true);
   const [maximizedPaneId, setMaximizedPaneId] = useState<string | null>(null);
@@ -146,6 +153,27 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     const id2 = panes.find((it) => it.content === content2)?.id;
     if (!id1 || !id2) return;
     handleSwapNodes(id1, id2);
+  };
+
+  const handleRemoveTileByContent = (content: string) => {
+    const targetId = panes.find((it) => it.content === content)?.id;
+    if (!targetId) return;
+    // handleRemoveTile is a no-op when the tree is a single pane (the root
+    // can't be deleted). Mirror the per-pane action: clear content instead.
+    if (panes.length === 1) {
+      handleUpdateTile(targetId, "");
+      return;
+    }
+    handleRemoveTile(targetId);
+  };
+
+  const handleReplaceTileByContent = (
+    oldContent: string,
+    newContent: string,
+  ) => {
+    const targetId = panes.find((it) => it.content === oldContent)?.id;
+    if (!targetId) return;
+    handleUpdateTile(targetId, newContent);
   };
 
   // --- LÓGICA DE TROCA (SWAP) ---
@@ -483,6 +511,11 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
     return flattened;
   }, [tree]);
 
+  useImperativeHandle(ref, () => ({
+    removeByContent: handleRemoveTileByContent,
+    replaceByContent: handleReplaceTileByContent,
+  }));
+
   return (
     <div
       ref={containerRef}
@@ -575,4 +608,4 @@ export const TmuxGrid: React.FC<TmuxGridProps> = ({
       })}
     </div>
   );
-};
+});

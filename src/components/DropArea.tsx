@@ -132,10 +132,10 @@ export const DropArea = forwardRef<HTMLDivElement, DropAreaProps>(
         const moving = !!(dragState.url && dragState.url.trim() === url.trim());
 
         onDrop && onDrop(url, position, moving);
-        // notifyDrop({
-        //   value: url,
-        //   swapUrl: position === "center" ? value : undefined,
-        // });
+        notifyDrop({
+          value: url,
+          swapUrl: position === "center" && value ? value : undefined,
+        });
       }
 
       function handleDragOver(e: DragEvent) {

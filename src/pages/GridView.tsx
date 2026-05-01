@@ -2,19 +2,36 @@ import { DropArea } from "@/components/DropArea";
 import {
   fallbackInitialTree,
   TmuxGrid,
+  TmuxGridHandle,
 } from "@/features/grid/components/TmuxGrid";
 import { equalizeTree } from "@/features/grid/lib";
 import { TreeNode } from "@/features/grid/types/tmux-grid";
 import { usePlugin } from "@/features/plugin";
 import { Stream } from "@/features/stream/components/Stream";
+import { useMultiInstanceDrag } from "@/hooks/use-multi-instance-drag";
 import { generateId } from "@/lib/utils";
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 export default function GridViewPage() {
   const { "*": slug } = useParams();
   const { findComponentByUrl, findPluginByName } = usePlugin();
+
+  const tmuxGridRef = useRef<TmuxGridHandle>(null);
+
+  useMultiInstanceDrag({
+    onDrop: useCallback((url: string, swapUrl?: string) => {
+      // swapUrl set => destination dropped on top of an existing pane;
+      // replace our copy of `url` with `swapUrl` so the two URLs trade places
+      // across instances. No swapUrl => plain cross-instance move, just drop.
+      if (swapUrl) {
+        tmuxGridRef.current?.replaceByContent(url, swapUrl);
+      } else {
+        tmuxGridRef.current?.removeByContent(url);
+      }
+    }, []),
+  });
 
   const initialTree = useMemo<TreeNode>(() => {
     if (!slug) return fallbackInitialTree;
@@ -89,20 +106,17 @@ export default function GridViewPage() {
     <div className="h-full w-full bg-primary">
       <div className="bg-background/75 shadow-md shadow-black rounded-t-2xl h-full w-full p-0.5">
         <TmuxGrid
+          ref={tmuxGridRef}
           className=""
           initialTree={initialTree}
           renderItem={({ content, empty, list, actions }) => {
             function validate(url: string) {
-              console.log(123);
               const canHandle =
                 findComponentByUrl(url, "player").length > 0 ||
                 findComponentByUrl(url, "source_handler").length > 0;
 
               if (!canHandle) {
                 toast.error("There's no plugin compatible with this url");
-                return false;
-              } else if (list.some((it) => it.content === url)) {
-                toast.error("This url is already in the grid");
                 return false;
               }
 
@@ -111,11 +125,20 @@ export default function GridViewPage() {
 
             return (
               <DropArea
+                value={content}
                 onDoubleClick={actions.toggleMaximize}
                 onDragOver={actions.disableMaximize}
-                onDrop={(url, position, moving) => {
+                onDrop={(url, position) => {
                   console.debug("GridView :: DropArea -> onDrop");
-                  if (moving) {
+
+                  // Only treat as a local move when the URL exists in this
+                  // instance's grid. A cross-instance drag has the URL in the
+                  // shared dragState but not in our own list — those should
+                  // land as fresh adds; the source instance removes its copy
+                  // via the useMultiInstanceDrag onDrop above.
+                  const isLocalMove = list.some((it) => it.content === url);
+
+                  if (isLocalMove) {
                     if (position === "center") actions.swap(url);
                     else actions.move(position, url);
                     return;

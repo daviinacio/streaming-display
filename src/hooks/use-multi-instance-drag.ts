@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 
 export type UseMultiInstanceDragProps = {
-  onDrop: (url: string, swapUrl?: string) => boolean;
+  onDrop: (url: string, swapUrl?: string) => void;
 };
 
 export type DragParams = {
