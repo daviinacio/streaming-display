@@ -1,4 +1,5 @@
 import { Logo } from "@/assets/logo";
+import { BucketSelector } from "@/features/bucket/components/BucketSelector";
 import { PluginListDialog } from "@/features/plugin/components/PluginListDialog";
 import { PluginMountGlobal } from "@/features/plugin/components/PluginMountGlobal";
 import { ToggleFitVideoButton } from "@/features/preferences/components/HeaderFitButton";
@@ -6,7 +7,7 @@ import { FullscreenButton } from "@/features/preferences/components/HeaderFullsc
 import { ThemeButton } from "@/features/preferences/components/HeaderThemeButton";
 import { ThemeDialog } from "@/features/preferences/components/ThemeDialog";
 import { cn } from "@/lib/utils";
-import { ExternalLinkIcon, PaletteIcon, Plug2Icon } from "lucide-react";
+import { PaletteIcon, Plug2Icon } from "lucide-react";
 import { HTMLAttributes } from "react";
 import { HeaderButton } from "./HeaderButton";
 import { Button, ButtonProps } from "./ui";
@@ -32,10 +33,10 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
         <div className="flex items-center gap-2 sm:gap-4">
           <Logo />
           <div className="flex items-center gap-2 sm:gap-4">
-            <HeaderLink to="https://streaming-display-v1.onrender.com/">
+            {/* <HeaderLink to="https://streaming-display-v1.onrender.com/">
               Open v1
               <ExternalLinkIcon className="w-4 h-4" />
-            </HeaderLink>
+            </HeaderLink> */}
             {/* <HeaderLink to="https://github.com/daviinacio/streaming-display">
               Github
               <ExternalLinkIcon className="w-4 h-4" />
@@ -44,6 +45,8 @@ export function AppHeader({ className, ...props }: AppHeaderProps) {
         </div>
         <div className="flex items-center sm:gap-1">
           <PluginMountGlobal position="menu_item" />
+
+          <BucketSelector />
 
           <ToggleFitVideoButton title="Fit video" />
 

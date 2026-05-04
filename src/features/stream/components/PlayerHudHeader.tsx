@@ -1,13 +1,16 @@
+import { AddStreamToBucketDialog } from "@/features/bucket/components/AddStreamToBucketDialog";
 import { PluginMount } from "@/features/plugin";
 import { cn, copyToClipboard } from "@/lib/utils";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
-import { XIcon } from "lucide-react";
+import { FolderInputIcon, XIcon } from "lucide-react";
+import { useState } from "react";
 import { useStream } from "../hooks/use-stream";
 import { PlayerHudAction } from "./PlayerHudAction";
 
 export function PlayerHudHeader() {
   const { src, handler, grid, error } = useStream();
   const title = (handler ? handler.title : !error && "Loading...") || src;
+  const [addToBucketOpen, setAddToBucketOpen] = useState(false);
 
   return (
     <div
@@ -49,10 +52,21 @@ export function PlayerHudHeader() {
       </div>
       <div className="flex items-center">
         <PluginMount position="header_right" />
+        <PlayerHudAction
+          title="Add to bucket"
+          onClick={() => setAddToBucketOpen(true)}
+        >
+          <FolderInputIcon />
+        </PlayerHudAction>
         <PlayerHudAction onClick={() => grid.remove()}>
           <XIcon />
         </PlayerHudAction>
       </div>
+      <AddStreamToBucketDialog
+        open={addToBucketOpen}
+        onOpenChange={setAddToBucketOpen}
+        initialUrl={src}
+      />
     </div>
   );
 }

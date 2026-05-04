@@ -50,17 +50,20 @@ export interface TmuxGridProps extends Omit<
     actions: GridItemActions;
   }) => ReactNode;
   initialTree?: TreeNode;
+  sessionStateKey?: string;
 }
 
 export interface TmuxGridHandle {
   removeByContent: (content: string) => void;
   replaceByContent: (oldContent: string, newContent: string) => void;
+  getTree: () => TreeNode;
 }
 
 export const TmuxGrid = forwardRef<TmuxGridHandle, TmuxGridProps>(({
   renderItem,
   className,
   initialTree,
+  sessionStateKey = "tmux-grid",
   ...props
 }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,7 +77,7 @@ export const TmuxGrid = forwardRef<TmuxGridHandle, TmuxGridProps>(({
     redo,
   } = useUndoableState<TreeNode>(
     initialTree || fallbackInitialTree,
-    "tmux-grid",
+    sessionStateKey,
   );
 
   useHotkey("Mod+Z", undo);
@@ -514,6 +517,7 @@ export const TmuxGrid = forwardRef<TmuxGridHandle, TmuxGridProps>(({
   useImperativeHandle(ref, () => ({
     removeByContent: handleRemoveTileByContent,
     replaceByContent: handleReplaceTileByContent,
+    getTree: () => tree,
   }));
 
   return (

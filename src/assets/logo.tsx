@@ -7,7 +7,7 @@ export function Logo() {
           Streaming Display
         </h1>
         <p className="absolute -bottom-2 right-2 sm:right-2.5 text-xs font-bold font-mono text-primary brightness-200">
-          v2
+          v3
         </p>
       </div>
     </div>

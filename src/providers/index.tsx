@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { PropsWithChildren } from "react";
 import { SourceHandlerProvider } from "./source-handler-provider";
 import { PluginProvider } from "@/features/plugin/hooks/use-plugin";
+import { BucketsProvider } from "@/features/bucket/hooks/use-buckets";
 import { HotkeysProvider } from "@tanstack/react-hotkeys";
 import {
   LocalStateProvider,
@@ -20,7 +21,9 @@ export function Providers({ children }: PropsWithChildren) {
             <AlertDialogProvider>
               <ReactQueryProvider>
                 <HotkeysProvider>
-                  <PluginProvider>{children}</PluginProvider>
+                  <PluginProvider>
+                    <BucketsProvider>{children}</BucketsProvider>
+                  </PluginProvider>
                 </HotkeysProvider>
                 <Toaster position="top-right" duration={2000} />
               </ReactQueryProvider>

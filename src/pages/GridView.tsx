@@ -1,4 +1,7 @@
 import { DropArea } from "@/components/DropArea";
+import { BucketSlotStream } from "@/features/bucket/components/BucketSlotStream";
+import { useBuckets } from "@/features/bucket/hooks/use-buckets";
+import { isBucketUrl, paneUrls } from "@/features/bucket/lib/utils";
 import {
   fallbackInitialTree,
   TmuxGrid,
@@ -10,13 +13,14 @@ import { usePlugin } from "@/features/plugin";
 import { Stream } from "@/features/stream/components/Stream";
 import { useMultiInstanceDrag } from "@/hooks/use-multi-instance-drag";
 import { generateId } from "@/lib/utils";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 
 export default function GridViewPage() {
   const { "*": slug } = useParams();
   const { findComponentByUrl, findPluginByName } = usePlugin();
+  const { activeBucket, activeBucketId, snapshotRef } = useBuckets();
 
   const tmuxGridRef = useRef<TmuxGridHandle>(null);
 
@@ -33,7 +37,19 @@ export default function GridViewPage() {
     }, []),
   });
 
+  useEffect(() => {
+    snapshotRef.current = () => {
+      const tree = tmuxGridRef.current?.getTree();
+      if (!tree) return null;
+      return { tree, urls: paneUrls(tree) };
+    };
+    return () => {
+      snapshotRef.current = null;
+    };
+  }, [snapshotRef]);
+
   const initialTree = useMemo<TreeNode>(() => {
+    if (activeBucket?.layout) return activeBucket.layout;
     if (!slug) return fallbackInitialTree;
 
     const urls: string[] = [];
@@ -107,6 +123,10 @@ export default function GridViewPage() {
       <div className="bg-background/75 shadow-md shadow-black rounded-t-2xl h-full w-full p-0.5">
         <TmuxGrid
           ref={tmuxGridRef}
+          key={activeBucketId || "default"}
+          sessionStateKey={
+            activeBucketId ? `tmux-grid-${activeBucketId}` : "tmux-grid"
+          }
           className=""
           initialTree={initialTree}
           renderItem={({ content, empty, list, actions }) => {
@@ -152,7 +172,12 @@ export default function GridViewPage() {
                 className="rounded-lg overflow-hidden"
                 onlyCenter={empty}
               >
-                {content !== "" && <Stream url={content} grid={actions} />}
+                {content !== "" &&
+                  (isBucketUrl(content) ? (
+                    <BucketSlotStream content={content} grid={actions} />
+                  ) : (
+                    <Stream url={content} grid={actions} />
+                  ))}
               </DropArea>
             );
           }}
